@@ -8,4 +8,5 @@ export class WorkerProcessor {
     console.log('🛠️ Procesando trabajo:', job.data);
     return { status: 'ok', message: 'Trabajo recibido y procesado' };
   }
+  
 }

@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bull';
 import { WorkerProcessor } from './dequeue/dequeue.processor';
+import { systemProcessor } from './dequeue/dequeue.processor copy';
 
 @Module({
   imports: [
@@ -12,10 +13,12 @@ import { WorkerProcessor } from './dequeue/dequeue.processor';
         port: 6380,
       },
     }),
-    BullModule.registerQueue({
-      name: 'deploy',
-    }),
+    BullModule.registerQueue(
+      { name: 'deploy' },         // Cola para deploy
+      { name: 'system' },  
+    ),
     WorkerProcessor,
+    systemProcessor,
   ],
   providers: [AppService],
 })
