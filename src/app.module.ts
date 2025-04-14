@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bull';
 import { WorkerProcessor } from './dequeue/dequeue.processor';
-import { systemProcessor } from './dequeue/dequeue.processor copy';
+import { systemProcessor } from './dequeue/dequeue.system.processor';
 
 @Module({
   imports: [
@@ -14,8 +13,8 @@ import { systemProcessor } from './dequeue/dequeue.processor copy';
       },
     }),
     BullModule.registerQueue(
-      { name: 'deploy' },         // Cola para deploy
-      { name: 'system' },  
+      { name: 'deploy' }, // Cola para deploy
+      { name: 'system' },
     ),
     WorkerProcessor,
     systemProcessor,
