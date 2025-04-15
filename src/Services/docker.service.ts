@@ -3,11 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
 import { SystemService } from './system.service';
+import { ConnectableObservable } from 'rxjs';
 @Injectable()
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
@@ -259,6 +260,7 @@ CMD ["npm", "run", "dev"] `,
     dbUser: string,
     dbPassword: string,
   ) {
+    console.log(process.env.MYSQL_ROOT_PASSWORD);
     const command = `
   docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
@@ -271,8 +273,11 @@ CMD ["npm", "run", "dev"] `,
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error al crear DB y usuario en MySQL:`, stderr);
+          throw new BadRequestException(error);
+          console.log(error);
           reject(error);
         } else {
+          console.log('creda');
           resolve(stdout);
         }
       });
