@@ -5,6 +5,7 @@ import { WorkerProcessor } from './dequeue/dequeue.processor';
 import { systemProcessor } from './dequeue/dequeue.system.processor';
 import { DockerfileService } from './Services/docker.service';
 import { ConfigModule } from '@nestjs/config';
+import { GitService } from './Services/git.service';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { ConfigModule } from '@nestjs/config';
       { name: 'system' },
     ),
   ],
-  providers: [AppService, WorkerProcessor, systemProcessor, DockerfileService],
+  providers: [AppService, WorkerProcessor, systemProcessor, DockerfileService, GitService],
 })
 export class AppModule {}
