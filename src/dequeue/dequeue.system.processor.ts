@@ -157,7 +157,7 @@ export class systemProcessor {
       }
     }
 
-    const doker_compose_file = this.dockerfileService.createDockerCompose(
+    const doker_compose_file = await this.dockerfileService.createDockerCompose(
       proyect.id,
       proyect.puerto,
     );
