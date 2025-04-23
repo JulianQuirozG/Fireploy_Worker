@@ -14,8 +14,8 @@ import { GitService } from './Services/git.service';
     }),
     BullModule.forRoot({
       redis: {
-        host: 'localhost', // donde está Redis
-        port: 6380,
+        host: process.env.REDIS_HOST, // donde está Redis
+        port: +process.env.REDIS_PORT,
       },
     }),
     BullModule.registerQueue(
