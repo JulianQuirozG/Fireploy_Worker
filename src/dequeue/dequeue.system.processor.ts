@@ -3,11 +3,13 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Job } from 'bull';
 import { DockerfileService } from 'src/Services/docker.service';
 import { GitService } from 'src/Services/git.service';
+import { NginxConfigGenerator } from 'src/Services/nginx.service';
 
 @Processor('system')
 export class systemProcessor {
   constructor(private dockerfileService: DockerfileService,
     private gitService: GitService,
+    private nginxService: NginxConfigGenerator,
   ) { }
   @Process('deploy-system')
   async handleSystemDeployJob(job: Job) {
@@ -163,10 +165,15 @@ export class systemProcessor {
     );
 
     console.log('⚙️ Procesando trabajo desde la cola system:', doker_compose_file);
+
+    const configureNginx = new NginxConfigGenerator([{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto}`}]);
+    const responseNginx = await configureNginx.generate();
+    //const configureNginx = await this.nginxService.generate();
     return {
-      status: 'ok',
-      message: 'Trabajo de deploy del sistema recibido y procesado',
-      dockerfiles: dockerfiles,
-    };
+  status: 'ok',
+  message: 'Trabajo de deploy del sistema recibido y procesado',
+  dockerfiles: dockerfiles,
+  nginx:responseNginx,
+};
   }
 }
