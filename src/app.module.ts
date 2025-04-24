@@ -6,6 +6,7 @@ import { systemProcessor } from './dequeue/dequeue.system.processor';
 import { DockerfileService } from './Services/docker.service';
 import { ConfigModule } from '@nestjs/config';
 import { GitService } from './Services/git.service';
+import { NginxConfigGenerator } from './Services/nginx.service';
 
 @Module({
   imports: [
@@ -23,6 +24,6 @@ import { GitService } from './Services/git.service';
       { name: 'system' },
     ),
   ],
-  providers: [AppService, WorkerProcessor, systemProcessor, DockerfileService, GitService],
+  providers: [AppService, WorkerProcessor, systemProcessor, DockerfileService, GitService, NginxConfigGenerator],
 })
 export class AppModule {}
