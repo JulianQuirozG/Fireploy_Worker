@@ -129,8 +129,10 @@ export class systemProcessor {
           ...env_repositorio,
           ...custom_varaibles_de_entorno,
         };
+        console.log(custom_varaibles_de_entorno)
+        console.log(env_repositorio);
       }
-      console.log(env_repositorio);
+
       const dockerfilePath = this.dockerfileService.generateDockerfile(
         rute,
         repositorio.tecnologia,
@@ -170,10 +172,10 @@ export class systemProcessor {
     //const responseNginx = await configureNginx.generate();
     //const configureNginx = await this.nginxService.generate();
     return {
-  status: 'ok',
-  message: 'Trabajo de deploy del sistema recibido y procesado',
-  dockerfiles: dockerfiles,
-  //nginx:responseNginx,
-};
+      status: 'ok',
+      message: 'Trabajo de deploy del sistema recibido y procesado',
+      dockerfiles: dockerfiles,
+      //nginx:responseNginx,
+    };
   }
 }
