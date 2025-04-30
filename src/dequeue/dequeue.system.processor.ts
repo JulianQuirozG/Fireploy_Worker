@@ -63,7 +63,7 @@ export class systemProcessor {
     const dockerfiles: any[] = [];
     let port = process.env.MYSQL_PORT;
     let host = process.env.MYSQL_CONTAINER_NAME;
-    if (proyect.base_de_datos.tipo && proyect.base_de_datos.tipo != 'S') {
+    if (proyect.base_de_datos && proyect.base_de_datos.tipo != 'S') {
       port = process.env.MONGO_PORT;
       host = process.env.MONGO_CONTAINER_NAME;
     }
