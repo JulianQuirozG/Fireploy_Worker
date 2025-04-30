@@ -100,7 +100,7 @@ export class systemProcessor {
           DB_PASSWORD: proyect.base_de_datos.contrasenia,
           PORT: puertos,
         };
-      } else if (repositorio.tipo == 'F') {
+      } else {
         env_repositorio = {
           PORT: puertos,
         };
