@@ -60,7 +60,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para servir la app con 'serve'
-      CMD ["serve", "-s", "dist", "-l", "${port}"]
+      CMD ["npx", "vite", "preview", "--port", "${port}"]
       `,
       node: `# Usa una versión estable de Node.js como base
         FROM node:18
