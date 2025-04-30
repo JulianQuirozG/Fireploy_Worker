@@ -152,16 +152,16 @@ CMD ["npm", "run", "dev"] `,
       const buildCmd = `docker build -t ${imageName} "${projectPath}"`;
 
       const portMapping = {
-        node: `${port}:3000`,
+        node: `${port}:${port}`,
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      const runCmd = `docker run -d --network ${networkName} -p ${portMapping[language]} --name ${containerName}  ${imageName} `;
+      const runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName}  ${imageName} `;
 
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
 
-      return `Contenedor ${containerName} corriendo en el puerto ${portMapping[language]}`;
+      return `Contenedor ${containerName} corriendo en el puerto ${port}`;
     } catch (error) {
       throw new Error(`Error al ejecutar Docker: ${error.message}`);
     }
