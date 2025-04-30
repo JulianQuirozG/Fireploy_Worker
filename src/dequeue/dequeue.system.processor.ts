@@ -105,7 +105,7 @@ export class systemProcessor {
           PORT: puertos,
         };
       }
-
+      console.log("Cosas",repositorios[index].variables_de_entorno)
       //Formating the variables de entorno of repositorio
       if (repositorios[index].variables_de_entorno) {
         const custom_varaibles_de_entorno = repositorios[
@@ -129,8 +129,6 @@ export class systemProcessor {
           ...env_repositorio,
           ...custom_varaibles_de_entorno,
         };
-        console.log(custom_varaibles_de_entorno)
-        console.log(env_repositorio);
       }
 
       const dockerfilePath = this.dockerfileService.generateDockerfile(
