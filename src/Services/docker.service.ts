@@ -35,7 +35,7 @@ export class DockerfileService {
 
       ReactVite:`
       # Etapa 1: Construcción
-      FROM node:18
+      FROM node:18 AS builder
 
       WORKDIR /app
       COPY . .
