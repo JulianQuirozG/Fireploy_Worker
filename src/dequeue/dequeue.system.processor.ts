@@ -105,6 +105,7 @@ export class systemProcessor {
           PORT: puertos,
         };
       }
+      console.log("Repo",repositorio)
       console.log("Cosas",repositorio.variables_de_entorno)
       //Formating the variables de entorno of repositorio
       if (repositorio.variables_de_entorno) {
