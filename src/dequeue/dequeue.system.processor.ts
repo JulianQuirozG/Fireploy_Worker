@@ -130,7 +130,7 @@ export class systemProcessor {
           ...custom_varaibles_de_entorno,
         };
       }
-
+      console.log(env_repositorio);
       const dockerfilePath = this.dockerfileService.generateDockerfile(
         rute,
         repositorio.tecnologia,
@@ -166,14 +166,14 @@ export class systemProcessor {
 
     console.log('⚙️ Procesando trabajo desde la cola system:', doker_compose_file);
 
-    const configureNginx = new NginxConfigGenerator([{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto}`}]);
-    const responseNginx = await configureNginx.generate();
+    //const configureNginx = new NginxConfigGenerator([{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto}`}]);
+    //const responseNginx = await configureNginx.generate();
     //const configureNginx = await this.nginxService.generate();
     return {
   status: 'ok',
   message: 'Trabajo de deploy del sistema recibido y procesado',
   dockerfiles: dockerfiles,
-  nginx:responseNginx,
+  //nginx:responseNginx,
 };
   }
 }
