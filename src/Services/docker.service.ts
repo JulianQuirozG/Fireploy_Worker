@@ -48,13 +48,13 @@ export class DockerfileService {
       # Etapa 2: Producción
       FROM node:18-alpine
 
-      WORKDIR /app
+      WORKDIR /app6
 
       # Instalar 'serve' para servir los archivos de producción
       RUN npm install -g serve
 
       # Copiar solo los archivos de salida
-      COPY --from=builder /app/dist ./dist
+      COPY --from=builder /app6/dist ./dist
 
       # Puerto de exposición (puedes cambiarlo si necesitas)
       EXPOSE ${port}
