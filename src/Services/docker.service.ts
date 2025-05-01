@@ -36,6 +36,40 @@ export class DockerfileService {
       ReactVite:`
       # Etapa 1: Construcción
       FROM node:18 AS builder
+
+      ${envLines}
+
+      WORKDIR /app
+
+      # Copiar todos los archivos, incluyendo el código fuente y configuración
+      COPY . .
+
+      # Instalar dependencias, incluyendo las de desarrollo
+      RUN npm install
+
+      # Etapa 2: Desarrollo
+      FROM node:18-alpine
+
+      ${envLines}
+
+      WORKDIR /app
+
+      # Copiar todos los archivos desde la etapa anterior
+      COPY --from=builder /app /app
+
+      # Instalar las dependencias de desarrollo
+      RUN npm install 
+
+      # Exponer el puerto para el servidor de desarrollo
+      EXPOSE 10010
+
+      # Comando para iniciar Vite en modo desarrollo
+      CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
+
+      `
+      /*`
+      # Etapa 1: Construcción
+      FROM node:18 AS builder
       
       ${envLines}
 
@@ -71,8 +105,8 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para servir la app con 'serve'
-      CMD ["npx", "vite", "preview", "--port", "${port}", "--host", "0.0.0.0"]
-      `,
+      CMD ["vite", "preview", "--port", "${port}", "--host", "0.0.0.0"]
+      `*/,
       node: `# Usa una versión estable de Node.js como base
         FROM node:18
 
