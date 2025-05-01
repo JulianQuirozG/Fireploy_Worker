@@ -36,13 +36,21 @@ export class DockerfileService {
       ReactVite:`
       # Etapa 1: Construcción
       FROM node:18 AS builder
+      
+      ${envLines}
+
+      # Definir los ARG para las variables que se pasan durante el build
+      ARG VITE_BASEPATH
+      ARG PORT
+
+      # Establecer las variables de entorno
+      ENV VITE_BASEPATH=$VITE_BASEPATH
+      ENV PORT=$PORT
 
       WORKDIR /app
       COPY . .
       
       RUN npm install
-
-      ${envLines}
       
       RUN npm run build
 
