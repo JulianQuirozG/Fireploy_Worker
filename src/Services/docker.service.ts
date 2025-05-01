@@ -172,8 +172,13 @@ export class DockerfileService {
     projectPath: string,
     language: string,
     port,
+    env: any ,
   ) {
     try {
+      const envLines = Object.entries(env[0])
+      .map(([key, value]) => `-e ${key}=${value}`)
+      .join(' ');
+
       const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
       const imageName = `app-${Name}`;
       const containerName = `Container-${Name}`;
@@ -187,8 +192,14 @@ export class DockerfileService {
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      const runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName}  ${imageName} `;
-
+      let runCmd=``;
+      if(envLines){
+        runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
+      } else {
+        runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
+      }
+      
+      console.log(runCmd);
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
 
