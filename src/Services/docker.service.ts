@@ -8,7 +8,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
 import { SystemService } from './system.service';
-import { ConnectableObservable } from 'rxjs';
+
 @Injectable()
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
@@ -37,8 +37,7 @@ export class DockerfileService {
       .join('\n');
 
     const templates = {
-
-      ReactVite:`
+      React: `
       # Etapa 1: Construcción
       FROM node:18 AS builder
 
@@ -71,47 +70,7 @@ export class DockerfileService {
       # Comando para iniciar Vite en modo desarrollo
       CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
-      `
-      /*`
-      # Etapa 1: Construcción
-      FROM node:18 AS builder
-      
-      ${envLines}
-
-      # Definir los ARG para las variables que se pasan durante el build
-      ARG VITE_BASEPATH
-      ARG PORT
-
-      # Establecer las variables de entorno
-      ENV VITE_BASEPATH=$VITE_BASEPATH
-      ENV PORT=$PORT
-
-      WORKDIR /app
-      COPY . .
-      
-      ${envLines}
-
-      RUN npm install
-      
-      RUN npm run build
-
-      # Etapa 2: Producción
-      FROM node:18-alpine
-
-      WORKDIR /app
-
-      # Instalar 'serve' para servir los archivos de producción
-      RUN npm install -g serve
-
-      # Copiar solo los archivos de salida
-      COPY --from=builder /app/dist ./dist
-
-      # Puerto de exposición (puedes cambiarlo si necesitas)
-      EXPOSE ${port}
-
-      # Comando para servir la app con 'serve'
-      CMD ["vite", "preview", "--port", "${port}", "--host", "0.0.0.0"]
-      `*/,
+      `,
       node: `# Usa una versión estable de Node.js como base
         FROM node:18
 
@@ -138,7 +97,7 @@ export class DockerfileService {
       # Usa un entrypoint flexible para adaptarse a cualquier framework
   CMD ["npm", "run", "dev"] `,
 
-        python: `# Use Python 3.9 as the base image
+      python: `# Use Python 3.9 as the base image
       FROM python:3.9
       
       # Set the working directory inside the container
@@ -180,8 +139,7 @@ export class DockerfileService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return templates[tech];
   }
-  
-  
+
   paserEnviromentFramework(
     framework: 'vite' | 'NextJs' | 'React',
     env: Record<string, string>,
@@ -246,12 +204,12 @@ export class DockerfileService {
     projectPath: string,
     language: string,
     port,
-    env: any ,
+    env: any,
   ) {
     try {
       const envLines = Object.entries(env[0])
-      .map(([key, value]) => `-e ${key}=${value}`)
-      .join(' ');
+        .map(([key, value]) => `-e ${key}=${value}`)
+        .join(' ');
 
       const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
       const imageName = `app-${Name}`;
@@ -266,13 +224,13 @@ export class DockerfileService {
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      let runCmd=``;
-      if(envLines){
+      let runCmd = ``;
+      if (envLines) {
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
       } else {
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
       }
-      
+
       console.log(runCmd);
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
