@@ -50,6 +50,8 @@ export class DockerfileService {
       WORKDIR /app
       COPY . .
       
+      ${envLines}
+
       RUN npm install
       
       RUN npm run build
