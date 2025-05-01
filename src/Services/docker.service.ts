@@ -69,7 +69,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para servir la app con 'serve'
-      CMD ["npx", "vite", "preview", "--port", "${port}", "--host", "0.0.0.0"]
+      CMD ["npx", "vite", "preview", "--port", "${port}", "--host", "proyectos.fireploy.online"]
       `,
       node: `# Usa una versión estable de Node.js como base
         FROM node:18
