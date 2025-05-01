@@ -155,6 +155,7 @@ export class systemProcessor {
           rute,
           repositorio.tecnologia,
           puertos,
+          [env_repositorio],
         );
         return dockerfiles;
       }
