@@ -13,6 +13,11 @@ import { ConnectableObservable } from 'rxjs';
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
   private readonly systemService = new SystemService();
+  private readonly prefixMap = {
+    vite: 'VITE_',
+    NextJs: 'NEXT_PUBLIC_',
+    React: 'REACT_APP_',
+  };
 
   /**
    * Generates a Dockerfile template based on the specified technology and port.
@@ -174,6 +179,31 @@ export class DockerfileService {
     // Return the corresponding Dockerfile template for the given technology
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return templates[tech];
+  }
+  
+  
+  paserEnviromentFramework(
+    framework: 'vite' | 'NextJs' | 'React',
+    env: Record<string, string>,
+  ): { json: Record<string, string>; envString: string } {
+    const prefix = this.prefixMap[framework];
+    if (!prefix) {
+      // Si el framework no es compatible, no hace nada
+      return { json: env, envString: '' };
+    }
+    const resultJson: Record<string, string> = {};
+    const resultLines: string[] = [];
+
+    for (const [key, value] of Object.entries(env)) {
+      const fullKey = `${prefix}${key}`;
+      resultJson[fullKey] = value;
+      resultLines.push(`${fullKey}=${value}`);
+    }
+
+    return {
+      json: resultJson,
+      envString: resultLines.join('\n'),
+    };
   }
 
   /**
