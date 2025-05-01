@@ -103,8 +103,12 @@ export class systemProcessor {
       } else {
         env_repositorio = {
           PORT: puertos,
+          HOST: process.env.HOST,
         };
       }
+      console.log(env_repositorio)
+      env_repositorio = this.dockerfileService.paserEnviromentFramework(repositorio.framework, env_repositorio).json;
+      console.log(env_repositorio);
       console.log("Repo",repositorio)
       console.log("Cosas",repositorio.variables_de_entorno)
       //Formating the variables de entorno of repositorio
