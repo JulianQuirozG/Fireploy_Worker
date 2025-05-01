@@ -41,9 +41,10 @@ export class DockerfileService {
       COPY . .
       
       RUN npm install
-      RUN echo "VITE_BASEPATH=/app6/" > .env.production && \
-      echo "VITE_PORT=10010" >> .env.production && \
-      npm run build
+
+      ${envLines}
+      
+      RUN npm run build
 
       # Etapa 2: Producción
       FROM node:18-alpine
