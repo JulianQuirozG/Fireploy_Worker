@@ -154,6 +154,7 @@ export class systemProcessor {
 
       //Create Dockerfile
       const dockerfilePath = this.dockerfileService.generateDockerfile(
+        proyect.id,
         rute,
         repositorio.tecnologia,
         puertos,
