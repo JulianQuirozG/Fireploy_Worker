@@ -42,7 +42,7 @@ export class NginxConfigGenerator {
     let config = '';
     for (const alias of this.aliases) {
       const loc = alias.path ? `/${alias.path}` : '/';
-      const proxyPass = `https://${alias.target}/${alias.path}`;
+      const proxyPass = `http://${alias.target}/${alias.path}`;
 
       config += `
 location ${loc} {
