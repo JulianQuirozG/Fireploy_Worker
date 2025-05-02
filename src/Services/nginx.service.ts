@@ -4,7 +4,7 @@
  * Ejecuta con: sudo ts-node generate-nginx.ts
  */
 
-import { writeFileSync, mkdirSync, existsSync, appendFileSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, appendFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
@@ -19,25 +19,30 @@ export class NginxConfigGenerator {
   private includesDir: string;
   private includeFile: string;
 
-  constructor(aliases: NginxAlias[]) {
+  constructor(archieveName: string, aliases: NginxAlias[]) {
     this.domain = 'proyectos.fireploy.online';
     this.aliases = aliases;
     this.includesDir = '/etc/nginx/includes';
-    this.includeFile = join(this.includesDir, 'custom_routes.conf');
+    this.includeFile = join(this.includesDir, `app${archieveName}`);
   }
 
   async generate() {
     // Asegura que exista el directorio de includes
     if (!existsSync(this.includesDir)) {
-      await mkdirSync(this.includesDir, { recursive: true });
+      mkdirSync(this.includesDir, { recursive: true });
       console.log(`📁 Directorio creado: ${this.includesDir}`);
+    }
+
+    if (existsSync(this.includeFile)) {
+      unlinkSync(this.includeFile);
+      console.log(`🗑️ Archivo anterior eliminado: ${this.includeFile}`);
     }
 
     // Construye la configuración con bloques location
     let config = '';
     for (const alias of this.aliases) {
       const loc = alias.path ? `/${alias.path}` : '/';
-      const proxyPass = `https://${alias.target}/`;
+      const proxyPass = `https://${alias.target}/${alias.path}`;
 
       config += `
 location ${loc} {
@@ -56,7 +61,7 @@ location ${loc} {
     }
 
     // Escribe el archivo de inclusión
-    appendFileSync(this.includeFile, config.trim() + '\n', 'utf8');
+    writeFileSync(this.includeFile, config.trim() + '\n', 'utf8');
     console.log(`📄 Archivo de rutas actualizado: ${this.includeFile}`);
 
     // Valida y recarga NGINX
