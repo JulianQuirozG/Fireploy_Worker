@@ -166,7 +166,7 @@ RUN npm run build -- --configuration production --base-href=/app${id_project}/
 EXPOSE 10002
 
 # Comando para correr la aplicación en producción
-CMD ["npx", "http-server", "dist"]
+CMD ["npx", "http-server", "dist", "-p", "10002"]
 
 
 `,
