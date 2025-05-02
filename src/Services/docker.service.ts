@@ -31,9 +31,14 @@ export class DockerfileService {
    * @param port The port number that the container should expose.
    * @returns A string containing the corresponding Dockerfile content.
    */
-  private getDockerFile(tech: string, port: number, env: any[]): string {
+  private getDockerFile(
+    tech: string,
+    port: number,
+    env: any[],
+    id_project: string,
+  ): string {
     const envLines = Object.entries(env[0])
-      .map(([key, value]) => `ENV ${key}=${value}`)
+      .map(([key, value]) => `ENV ${key}="${value}"`)
       .join('\n');
 
     const templates = {
@@ -133,6 +138,38 @@ export class DockerfileService {
     
     # Start Apache in the foreground
     CMD ["apache2-foreground"]`,
+
+      angular: `# Etapa 1: Construcción del entorno de desarrollo
+FROM node:18-alpine
+
+# Configura el entorno de construcción
+ENV id_project=app2
+
+# Instala Angular CLI globalmente
+RUN npm install -g @angular/cli
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Reemplaza las variables de entorno de Angular
+RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
+RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+
+# Construye la aplicación en producción
+RUN npm run build -- --configuration production --base-href=/app${id_project}/
+
+# Exponer el puerto
+EXPOSE 10002
+
+# Comando para correr la aplicación en producción
+CMD ["npx", "http-server", "dist"]
+
+
+`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
@@ -179,6 +216,7 @@ export class DockerfileService {
    * @throws Error if the specified language is not supported.
    */
   generateDockerfile(
+    id_project: string,
     projectPath: string,
     language: string,
     port: number,
@@ -186,7 +224,7 @@ export class DockerfileService {
   ): string {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
     // Retrieve the corresponding Dockerfile template
-    const dockerFile = this.getDockerFile(language, port, env);
+    const dockerFile = this.getDockerFile(language, port, env, id_project);
 
     if (!dockerFile) {
       throw new Error(`Language ${language} is not supported.`);
@@ -208,7 +246,7 @@ export class DockerfileService {
   ) {
     try {
       const envLines = Object.entries(env[0])
-        .map(([key, value]) => `-e ${key}=${value}`)
+        .map(([key, value]) => `-e ${key}="${value}"`)
         .join(' ');
 
       const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
@@ -219,11 +257,6 @@ export class DockerfileService {
 
       const buildCmd = `docker build -t ${imageName} "${projectPath}"`;
 
-      const portMapping = {
-        node: `${port}:${port}`,
-        python: `${port}:5000`,
-        php: `${port}:8080`,
-      };
       let runCmd = ``;
       if (envLines) {
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
