@@ -72,21 +72,21 @@ export class DockerfileService {
 
       `,
       node: `# Usa una versión estable de Node.js como base
-        FROM node:18
+      FROM node:18
 
-        # Establece el directorio de trabajo dentro del contenedor
-        WORKDIR /app
+      # Establece el directorio de trabajo dentro del contenedor
+      WORKDIR /app
 
-        # Copia package.json y package-lock.json antes de copiar el código fuente
-        COPY package*.json ./
+      # Copia package.json y package-lock.json antes de copiar el código fuente
+      COPY package*.json ./
 
-        # Instala dependencias sin generar archivos innecesarios
-        RUN npm install 
+      # Instala dependencias sin generar archivos innecesarios
+      RUN npm install 
 
-        # Copia el código fuente al contenedor
-        COPY . .
+      # Copia el código fuente al contenedor
+      COPY . .
 
-    ${envLines}
+      ${envLines}
 
       # Detecta si hay un script de build y lo ejecuta (opcional)
       RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
@@ -95,7 +95,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Usa un entrypoint flexible para adaptarse a cualquier framework
-  CMD ["npm", "run", "dev"] `,
+      CMD ["npm", "run", "dev"] `,
 
       python: `# Use Python 3.9 as the base image
       FROM python:3.9
