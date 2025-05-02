@@ -195,15 +195,19 @@ export class systemProcessor {
       doker_compose_file,
     );
     if(repositorios.length > 1 ){
+      console.log('dos');
       const configureNginx = new NginxConfigGenerator(`${proyect.id}`,[{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto++}`},{ path: `api${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto++}`}]);
-      const responseNginx = await configureNginx.generate();
+      const responseNginx = configureNginx.generate();
+      
       //const configureNginx = await this.nginxService.generate();
     } else{
+      console.log('uno');
       const configureNginx = new NginxConfigGenerator(`${proyect.id}`,[{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto}`}]);
-      const responseNginx = await configureNginx.generate();
+      const responseNginx = configureNginx.generate();
       //const configureNginx = await this.nginxService.generate();
     }
-   
+
+    console.log(1);
     return {
       status: 'ok',
       message: 'Trabajo de deploy del sistema recibido y procesado',
