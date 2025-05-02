@@ -177,32 +177,42 @@ export class systemProcessor {
           puertos,
           [env_repositorio],
         );
-        return {
-          status: 'ok',
-          message: 'Trabajo de deploy del sistema recibido y procesado',
-          dockerfiles: dockerfiles,
-        };
       }
     }
 
-    const doker_compose_file = await this.dockerfileService.createDockerCompose(
-      proyect.id,
-      proyect.puerto,
-    );
+    if (repositorios.length > 1) {
+      const doker_compose_file =
+        await this.dockerfileService.createDockerCompose(
+          proyect.id,
+          proyect.puerto,
+        );
 
-    console.log(
-      '⚙️ Procesando trabajo desde la cola system:',
-      doker_compose_file,
-    );
-    if(repositorios.length > 1 ){
+      console.log(
+        '⚙️ Procesando trabajo desde la cola system:',
+        doker_compose_file,
+      );
       console.log('dos');
-      const configureNginx = new NginxConfigGenerator(`${proyect.id}`,[{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto++}`},{ path: `api${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto++}`}]);
+      const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
+        {
+          path: `app${proyect.id as string}`,
+          target: `${process.env.IP}:${proyect.puerto++}`,
+        },
+        {
+          path: `api${proyect.id as string}`,
+          target: `${process.env.IP}:${proyect.puerto++}`,
+        },
+      ]);
       const responseNginx = configureNginx.generate();
-      
+
       //const configureNginx = await this.nginxService.generate();
-    } else{
+    } else {
       console.log('uno');
-      const configureNginx = new NginxConfigGenerator(`${proyect.id}`,[{ path: `app${proyect.id as string}`, target: `${process.env.IP}:${proyect.puerto}`}]);
+      const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
+        {
+          path: `app${proyect.id as string}`,
+          target: `${process.env.IP}:${proyect.puerto}`,
+        },
+      ]);
       const responseNginx = configureNginx.generate();
       //const configureNginx = await this.nginxService.generate();
     }
