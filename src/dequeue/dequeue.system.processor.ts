@@ -1,5 +1,6 @@
 import { Process, Processor } from '@nestjs/bull';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Job } from 'bull';
 import { DockerfileService } from 'src/Services/docker.service';
 import { GitService } from 'src/Services/git.service';
@@ -180,6 +181,7 @@ export class systemProcessor {
       }
     }
 
+    let responseNginx: any;
     if (repositorios.length > 1) {
       const doker_compose_file =
         await this.dockerfileService.createDockerCompose(
@@ -202,7 +204,7 @@ export class systemProcessor {
           target: `${process.env.IP}:${proyect.puerto++}`,
         },
       ]);
-      const responseNginx = configureNginx.generate();
+      responseNginx = await configureNginx.generate();
 
       //const configureNginx = await this.nginxService.generate();
     } else {
@@ -213,7 +215,7 @@ export class systemProcessor {
           target: `${process.env.IP}:${proyect.puerto}`,
         },
       ]);
-      const responseNginx = configureNginx.generate();
+      responseNginx = await configureNginx.generate();
       //const configureNginx = await this.nginxService.generate();
     }
 
@@ -222,7 +224,7 @@ export class systemProcessor {
       status: 'ok',
       message: 'Trabajo de deploy del sistema recibido y procesado',
       dockerfiles: dockerfiles,
-      //nginx:responseNginx,
+      nginx: responseNginx,
     };
   }
 }
