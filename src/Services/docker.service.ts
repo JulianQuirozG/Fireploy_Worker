@@ -167,12 +167,8 @@ export class DockerfileService {
       # Exponer el puerto
       EXPOSE ${port}
 
-      # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port}"]
-
-
-
-
+# Comando para correr la aplicación en producción
+CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port} --allowed-hosts all"]
 `,
     };
 
