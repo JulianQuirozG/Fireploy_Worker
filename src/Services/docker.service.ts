@@ -168,7 +168,7 @@ RUN npm run build -- --configuration production --base-href=/app${id_project}/
 EXPOSE ${port}
 
 # Comando para correr la aplicación en producción
-CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port}"]
+CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port} --allowed-hosts all"]
 
 
 
