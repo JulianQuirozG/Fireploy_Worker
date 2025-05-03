@@ -153,20 +153,24 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+RUN npm install -g serve
+
 COPY . .
 
 # Reemplaza las variables de entorno de Angular
 RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
 
 # Construye la aplicación en producción
 RUN npm run build -- --configuration production --base-href=/app${id_project}/
 
 # Exponer el puerto
-EXPOSE 10002
+EXPOSE ${port}
 
 # Comando para correr la aplicación en producción
-CMD ["npx", "http-server", "dist", "-p", "${port}"]
+CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port}"]
+
+
 
 
 `,
