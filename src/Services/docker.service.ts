@@ -70,7 +70,7 @@ export class DockerfileService {
       RUN npm install 
 
       # Exponer el puerto para el servidor de desarrollo
-      EXPOSE 10010
+      EXPOSE ${port}
 
       # Comando para iniciar Vite en modo desarrollo
       CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
@@ -114,65 +114,61 @@ export class DockerfileService {
       # Install dependencies
       RUN pip install -r requirements.txt
       
-    ${envLines}
+      ${envLines}
 
-    # Copy the entire application source code
-    COPY . .
-    
-    # Expose the application port
-    EXPOSE 3000
-    
-    # Start the application
-    CMD ["python", "app.py"]`,
+      # Copy the entire application source code
+      COPY . .
+      
+      # Expose the application port
+      EXPOSE 3000
+      
+      # Start the application
+      CMD ["python", "app.py"]`,
 
-      php: `# Use PHP 8.1 with Apache
-    FROM php:8.1-apache
-    
-    # Copy application files to the Apache server directory
-    COPY . /var/www/html/
-    
-    ${envLines}
+        php: `# Use PHP 8.1 with Apache
+      FROM php:8.1-apache
+      
+      # Copy application files to the Apache server directory
+      COPY . /var/www/html/
+      
+      ${envLines}
 
-    # Expose the application port
-    EXPOSE ${port}
-    
-    # Start Apache in the foreground
-    CMD ["apache2-foreground"]`,
+      # Expose the application port
+      EXPOSE ${port}
+      
+      # Start Apache in the foreground
+      CMD ["apache2-foreground"]`,
 
       angular: `# Etapa 1: Construcción del entorno de desarrollo
-FROM node:18-alpine
+      FROM node:18-alpine
 
-# Configura el entorno de construcción
-ENV id_project=app2
+      # Configura el entorno de construcción
+      ENV id_project=app2
 
-# Instala Angular CLI globalmente
-RUN npm install -g @angular/cli
+      # Instala Angular CLI globalmente
+      RUN npm install -g @angular/cli
 
-WORKDIR /app
+      WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+      COPY package*.json ./
+      RUN npm install
 
-RUN npm install -g serve
+      RUN npm install -g serve
 
-COPY . .
+      COPY . .
 
-# Reemplaza las variables de entorno de Angular
-RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+      # Reemplaza las variables de entorno de Angular
+      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
 
-# Construye la aplicación en producción
-RUN npm run build -- --configuration production --base-href=/app${id_project}/
+      # Construye la aplicación en producción
+      RUN npm run build -- --configuration production --base-href=/app${id_project}/
 
-# Exponer el puerto
-EXPOSE ${port}
+      # Exponer el puerto
+      EXPOSE ${port}
 
 # Comando para correr la aplicación en producción
 CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port} --allowed-hosts all"]
-
-
-
-
 `,
     };
 
