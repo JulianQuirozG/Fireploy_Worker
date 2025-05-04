@@ -81,7 +81,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para iniciar la aplicación en producción
-      CMD ["sh", "-c", "next start -p ${port}"]
+      CMD ["sh", "-c", "PORT=${port} npm run start"]
 
       `,
       React: `
