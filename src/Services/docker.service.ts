@@ -184,13 +184,10 @@ export class DockerfileService {
       angular: `# Etapa 1: Construcción del entorno de desarrollo
       FROM node:18-alpine
 
-      # Configura el entorno de construcción
-      ENV id_project=app2
-
       # Instala Angular CLI globalmente
       RUN npm install -g @angular/cli
 
-      WORKDIR /app
+      WORKDIR /app${id_project}
 
       COPY package*.json ./
       RUN npm install
@@ -209,13 +206,8 @@ export class DockerfileService {
       # Exponer el puerto
       EXPOSE ${port}
 
-      # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "ng serve --host 0.0.0.0 --port ${port}"]
-
-
-
-
-`,
+# Comando para correr la aplicación en producción
+CMD ["sh", "-c", "npx ng serve --host 0.0.0.0 --port ${port} --disable-host-check"]`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
