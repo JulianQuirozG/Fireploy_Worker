@@ -42,6 +42,48 @@ export class DockerfileService {
       .join('\n');
 
     const templates = {
+      Nextjs: `
+      FROM node:20-alpine AS builder
+
+      # Copia las variables de entorno si las necesitas
+      ${envLines}
+
+      WORKDIR /app
+
+      # Copiar los archivos necesarios para instalar dependencias
+      COPY package*.json ./
+
+      # Instalar dependencias
+      RUN npm install
+
+      # Copiar el código fuente
+      COPY . .
+
+      # Realiza la compilación para producción
+      RUN npm run build
+
+      # Etapa 2: Producción
+      FROM node:20-alpine
+
+      # Establecer variables de entorno para producción
+      ENV NODE_ENV=production
+
+      WORKDIR /app
+
+      # Copiar solo lo necesario desde la etapa anterior (build)
+      COPY --from=builder /app/public ./public
+      COPY --from=builder /app/.next ./.next
+      COPY --from=builder /app/node_modules ./node_modules
+      COPY --from=builder /app/package.json ./package.json
+      COPY --from=builder /app/next.config.js ./next.config.js
+
+      # Exponer el puerto para la aplicación
+      EXPOSE ${port}
+
+      # Comando para iniciar la aplicación en producción
+      CMD ["sh", "-c", "next start -p ${port}"]
+
+      `,
       React: `
       # Etapa 1: Construcción
       FROM node:18 AS builder
@@ -174,7 +216,7 @@ CMD ["sh", "-c", "npx ng serve --host 0.0.0.0 --port ${port} --disable-host-chec
   }
 
   paserEnviromentFramework(
-    framework: 'vite' | 'NextJs' | 'React',
+    framework: 'Vite' | 'Nextjs' | 'React',
     env: Record<string, string>,
   ): { json: Record<string, string>; envString: string } {
     const prefix = this.prefixMap[framework];
