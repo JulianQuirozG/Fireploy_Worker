@@ -177,12 +177,12 @@ export class DockerfileService {
       CMD ["apache2-foreground"]`,
 
       angular: `# Etapa 1: Construcción del entorno de desarrollo
-      FROM node:18-alpine
+      FROM node:18-alpine AS builder
 
       # Instala Angular CLI globalmente
       RUN npm install -g @angular/cli
 
-      WORKDIR /app${id_project}
+      WORKDIR /app4
 
       COPY package*.json ./
       RUN npm install
@@ -192,17 +192,28 @@ export class DockerfileService {
       COPY . .
 
       # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+      RUN echo "export const environment = { production: false, basePath: '/' };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/' };" > src/environments/environment.development.ts
 
       # Construye la aplicación en producción
-      RUN npm run build -- --configuration production --base-href=/app${id_project}/
+      RUN npm run build -- --configuration production --base-href=/
+
+      # Etapa 2: servidor de archivos estáticos
+      FROM node:18-alpine
+
+      WORKDIR /app
+
+      # Instalar serve para servir archivos
+      RUN npm install -g serve
+
+      # Copiar archivos generados del build
+      COPY --from=builder /app/dist/*/browser .
 
       # Exponer el puerto
       EXPOSE ${port}
 
-# Comando para correr la aplicación en producción
-CMD ["sh", "-c", "npx ng serve --host 0.0.0.0 --port ${port} --disable-host-check"]`,
+      # Comando para correr la aplicación en producción
+      CMD ["sh", "-c", "serve -l ${port}"]`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
