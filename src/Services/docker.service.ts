@@ -216,6 +216,31 @@ export class DockerfileService {
 
       # Comando para correr la aplicación en producción
       CMD ["sh", "-c", "serve -l ${port}"]`,
+      express: `# Imagen base oficial de Node.js
+FROM node:18-alpine
+
+# Establece variable de entorno del puerto
+ENV PORT=${port}
+ENV BASE_PATH=/app${id_project}
+
+# Establece el directorio de trabajo
+WORKDIR /app
+
+# Copia las dependencias
+COPY package*.json ./
+
+# Instala dependencias
+RUN npm install
+
+# Copia el resto de los archivos
+COPY . .
+
+# Expone el puerto (el valor de la variable ENV)
+EXPOSE ${port}
+
+# Comando para arrancar la aplicación
+CMD ["sh", "-c", "node ./bin/www"]
+`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
