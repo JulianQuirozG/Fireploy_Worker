@@ -220,8 +220,7 @@ export class DockerfileService {
 FROM node:18-alpine
 
 # Establece variable de entorno del puerto
-ENV PORT=${port}
-ENV BASE_PATH=/app${id_project}
+
 ${envLines}
 
 # Establece el directorio de trabajo
