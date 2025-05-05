@@ -193,6 +193,8 @@ export class DockerfileService {
 
       # Reemplazar el environment.prod.ts con basePath correcto
       RUN echo "export const environment = { production: true, basePath: '/app${id_project}' };" > src/environments/environment.prod.ts
+      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
 
       # Build con base-href para rutas correctas en NGINX
       RUN npm run build -- --configuration production --base-href /app${id_project}/
@@ -200,13 +202,14 @@ export class DockerfileService {
       # Etapa 2: Imagen final para servir la app
       FROM node:18-alpine
 
-      WORKDIR /usr/src/app
+      WORKDIR /app/app${id_project}
 
       # Instalar serve
       RUN npm install -g serve
 
       # Copiar archivos construidos desde el builder
-      COPY --from=builder /app/dist/*/browser ./app/app${id_project}
+      COPY --from=builder /app/dist/*/browser ./app${id_project}
+      COPY --from=builder /app/dist/*/browser .
 
       # Exponer el puerto interno
       EXPOSE ${port}
