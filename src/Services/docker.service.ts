@@ -202,20 +202,19 @@ export class DockerfileService {
       # Etapa 2: Imagen final para servir la app
       FROM node:18-alpine
 
-      WORKDIR /app/app${id_project}
+      WORKDIR /app
 
       # Instalar serve
       RUN npm install -g serve
 
       # Copiar archivos construidos desde el builder
-      COPY --from=builder /app/dist/*/browser ./app${id_project}
       COPY --from=builder /app/dist/*/browser .
 
-      # Exponer el puerto interno
+      # Exponer el puerto inte rno
       EXPOSE ${port}
 
       # Ejecutar el servidor estático
-      CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
+      CMD ["sh", "-c", "serve -s . -l ${port}"]
       `,
 
       express: `# Imagen base oficial de Node.js
