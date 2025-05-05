@@ -102,8 +102,8 @@ export class systemProcessor {
 
       // Set data base variables
       if (
-        proyect.base_de_datos &&
-        (proyect.tipo_proyecto == 'M' || repositorio.tipo === 'B')
+        (proyect.base_de_datos && proyect.tipo_proyecto == 'M') ||
+        repositorio.tipo == 'B'
       ) {
         env_repositorio = {
           DB_DATABASE: proyect.base_de_datos.nombre,
@@ -111,13 +111,23 @@ export class systemProcessor {
           DB_HOST: db_Host,
           DB_USER: proyect.base_de_datos.usuario,
           DB_PASSWORD: proyect.base_de_datos.contrasenia,
-          PORT: puertos,
-          HOST: process.env.HOST,
+        };
+      }
+
+      env_repositorio = {
+        PORT: puertos,
+        HOST: process.env.HOST,
+        ...env_repositorio,
+      };
+      if (repositorio.tipo === 'B') {
+        env_repositorio = {
+          BASE_PATH: `/api${proyect.id}`,
+          ...env_repositorio,
         };
       } else {
         env_repositorio = {
-          PORT: puertos,
-          HOST: process.env.HOST,
+          BASE_PATH: `/app${proyect.id}`,
+          ...env_repositorio,
         };
       }
 
@@ -164,7 +174,7 @@ export class systemProcessor {
       // Add dockerfiles
       dockerfiles.push({
         proyect_id: proyect.id,
-        rute,
+        rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
         type: repositorio.tipo,
         port: puertos,
         language: repositorio.tecnologia,
