@@ -206,7 +206,7 @@ export class DockerfileService {
       RUN npm install -g serve
 
       # Copiar archivos construidos desde el builder
-      COPY --from=builder /app/dist/* ./app${id_project}
+      COPY --from=builder /app/dist/*/browser ./app${id_project}
 
       # Exponer el puerto interno
       EXPOSE ${port}
