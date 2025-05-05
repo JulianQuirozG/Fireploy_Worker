@@ -174,7 +174,7 @@ export class systemProcessor {
       // Add dockerfiles
       dockerfiles.push({
         proyect_id: proyect.id,
-        rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}`,
+        rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
         type: repositorio.tipo,
         port: puertos,
         language: repositorio.tecnologia,
