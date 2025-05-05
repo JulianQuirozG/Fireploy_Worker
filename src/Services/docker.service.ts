@@ -176,7 +176,48 @@ export class DockerfileService {
       # Start Apache in the foreground
       CMD ["apache2-foreground"]`,
 
-      angular: `# Etapa 1: Construcción del entorno de desarrollo
+      angular: `
+      # Etapa 1: Build de Angular
+      FROM node:18-alpine AS builder
+
+      # Argumentos para personalización
+
+      WORKDIR /app
+
+      # Instalar dependencias
+      COPY package*.json ./
+      RUN npm install
+
+      # Copiar código fuente
+      COPY . .
+
+      # Reemplazar el environment.prod.ts con basePath correcto
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}' };" > src/environments/environment.prod.ts
+
+      # Build con base-href para rutas correctas en NGINX
+      RUN npm run build -- --configuration production --base-href /app${id_project}/
+
+      # Etapa 2: Imagen final para servir la app
+      FROM node:18-alpine
+
+      WORKDIR /usr/src/app
+
+      # Instalar serve
+      RUN npm install -g serve
+
+      # Copiar archivos construidos desde el builder
+      COPY --from=builder /app/dist/* ./app${id_project}
+
+      # Exponer el puerto interno
+      EXPOSE ${port}
+
+      # Ejecutar el servidor estático
+      CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
+      `
+      /** /
+      
+      
+      `# Etapa 1: Construcción del entorno de desarrollo
       FROM node:18-alpine AS builder
 
       # Instala Angular CLI globalmente
@@ -207,15 +248,15 @@ export class DockerfileService {
       RUN npm install -g serve
 
       # Copiar archivos generados del build
-      
-      COPY --from=builder /app/dist/*/browser .
-      COPY --from=builder /app/dist/*/browser ./app${id_project}
-
+      */
+      //COPY --from=builder /app/dist/*/browser .
+     // COPY --from=builder /app/dist/*/browser ./app${id_project}
+/*
       # Exponer el puerto
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}"]`,
+      CMD ["sh", "-c", "serve -l ${port}"]`,**/
     };
 
     // Return the corresponding Dockerfile template for the given technology
