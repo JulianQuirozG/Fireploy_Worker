@@ -113,11 +113,13 @@ export class systemProcessor {
           DB_PASSWORD: proyect.base_de_datos.contrasenia,
           PORT: puertos,
           HOST: process.env.HOST,
+          BASE_PATH: `/app${proyect.id}`,
         };
       } else {
         env_repositorio = {
           PORT: puertos,
           HOST: process.env.HOST,
+          BASE_PATH: `/app${proyect.id}`,
         };
       }
 
