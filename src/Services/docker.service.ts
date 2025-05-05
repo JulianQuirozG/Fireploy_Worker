@@ -213,75 +213,32 @@ export class DockerfileService {
 
       # Ejecutar el servidor estático
       CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
-      `
-      /** /
-      
-      
-      `# Etapa 1: Construcción del entorno de desarrollo
-      FROM node:18-alpine AS builder
-
-      # Instala Angular CLI globalmente
-      RUN npm install -g @angular/cli
-
-      WORKDIR /app
-
-      COPY package*.json ./
-      RUN npm install
-
-      RUN npm install -g serve
-
-      COPY . .
-
-      # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
-
-      # Construye la aplicación en producción
-      RUN npm run build -- --configuration production 
-
-      # Etapa 2: servidor de archivos estáticos
+      `,
+      express: `# Imagen base oficial de Node.js
       FROM node:18-alpine
 
-      WORKDIR /app/app${id_project}
+      # Establece variable de entorno del puerto
 
-      # Instalar serve para servir archivos
-      RUN npm install -g serve
+      ${envLines}
 
-      # Copiar archivos generados del build
-      */
-      //COPY --from=builder /app/dist/*/browser .
-     // COPY --from=builder /app/dist/*/browser ./app${id_project}
-/*
-      # Exponer el puerto
+      # Establece el directorio de trabajo
+      WORKDIR /app
+
+      # Copia las dependencias
+      COPY package*.json ./
+
+      # Instala dependencias
+      RUN npm install
+
+      # Copia el resto de los archivos
+      COPY . .
+
+      # Expone el puerto (el valor de la variable ENV)
       EXPOSE ${port}
 
-      # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}"]`,
-      express: `# Imagen base oficial de Node.js
-FROM node:18-alpine
-
-# Establece variable de entorno del puerto
-
-${envLines}
-
-# Establece el directorio de trabajo
-WORKDIR /app
-
-# Copia las dependencias
-COPY package*.json ./
-
-# Instala dependencias
-RUN npm install
-
-# Copia el resto de los archivos
-COPY . .
-
-# Expone el puerto (el valor de la variable ENV)
-EXPOSE ${port}
-
-# Comando para arrancar la aplicación
-CMD ["npm", "start"]
-`,
+      # Comando para arrancar la aplicación
+      CMD ["npm", "start"]
+      `, 
     };
 
     // Return the corresponding Dockerfile template for the given technology
