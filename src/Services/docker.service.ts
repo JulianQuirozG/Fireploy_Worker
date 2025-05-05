@@ -192,8 +192,8 @@ export class DockerfileService {
       COPY . .
 
       # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '' };" > src/environments/environment.development.ts
+      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
 
       # Construye la aplicación en producción
       RUN npm run build -- --configuration production 
@@ -201,13 +201,15 @@ export class DockerfileService {
       # Etapa 2: servidor de archivos estáticos
       FROM node:18-alpine
 
-      WORKDIR /app
+      WORKDIR /app/app${id_project}
 
       # Instalar serve para servir archivos
       RUN npm install -g serve
 
       # Copiar archivos generados del build
+      
       COPY --from=builder /app/dist/*/browser .
+      COPY --from=builder /app/dist/*/browser ./app${id_project}
 
       # Exponer el puerto
       EXPOSE ${port}
