@@ -182,7 +182,7 @@ export class DockerfileService {
       # Instala Angular CLI globalmente
       RUN npm install -g @angular/cli
 
-      WORKDIR /app4
+      WORKDIR /app
 
       COPY package*.json ./
       RUN npm install
