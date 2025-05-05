@@ -222,6 +222,7 @@ FROM node:18-alpine
 # Establece variable de entorno del puerto
 ENV PORT=${port}
 ENV BASE_PATH=/app${id_project}
+${envLines}
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -239,7 +240,7 @@ COPY . .
 EXPOSE ${port}
 
 # Comando para arrancar la aplicación
-CMD ["sh", "-c", "node ./bin/www"]
+CMD ["npm", "start"]
 `,
     };
 
