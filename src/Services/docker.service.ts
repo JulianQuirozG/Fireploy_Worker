@@ -176,71 +176,69 @@ export class DockerfileService {
       # Start Apache in the foreground
       CMD ["apache2-foreground"]`,
 
-      angular: `# Etapa 1: Construcción del entorno de desarrollo
+      angular: `
+      # Etapa 1: Build de Angular
       FROM node:18-alpine AS builder
 
-      # Instala Angular CLI globalmente
-      RUN npm install -g @angular/cli
+      # Argumentos para personalización
 
       WORKDIR /app
 
+      # Instalar dependencias
       COPY package*.json ./
       RUN npm install
 
-      RUN npm install -g serve
-
+      # Copiar código fuente
       COPY . .
 
-      # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+      # Reemplazar el environment.prod.ts con basePath correcto
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}' };" > src/environments/environment.prod.ts
 
-      # Construye la aplicación en producción
-      RUN npm run build -- --configuration production 
+      # Build con base-href para rutas correctas en NGINX
+      RUN npm run build -- --configuration production --base-href /app${id_project}/
 
-      # Etapa 2: servidor de archivos estáticos
+      # Etapa 2: Imagen final para servir la app
       FROM node:18-alpine
 
-      WORKDIR /app/app${id_project}
+      WORKDIR /usr/src/app
 
-      # Instalar serve para servir archivos
+      # Instalar serve
       RUN npm install -g serve
 
-      # Copiar archivos generados del build
-      
-      COPY --from=builder /app/dist/*/browser .
-      COPY --from=builder /app/dist/*/browser ./app${id_project}
+      # Copiar archivos construidos desde el builder
+      COPY --from=builder /app/dist/* ./app${id_project}
 
-      # Exponer el puerto
+      # Exponer el puerto interno
       EXPOSE ${port}
 
-      # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}"]`,
+      # Ejecutar el servidor estático
+      CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
+      `,
       express: `# Imagen base oficial de Node.js
-FROM node:18-alpine
+      FROM node:18-alpine
 
-# Establece variable de entorno del puerto
+      # Establece variable de entorno del puerto
 
-${envLines}
+      ${envLines}
 
-# Establece el directorio de trabajo
-WORKDIR /app
+      # Establece el directorio de trabajo
+      WORKDIR /app
 
-# Copia las dependencias
-COPY package*.json ./
+      # Copia las dependencias
+      COPY package*.json ./
 
-# Instala dependencias
-RUN npm install
+      # Instala dependencias
+      RUN npm install
 
-# Copia el resto de los archivos
-COPY . .
+      # Copia el resto de los archivos
+      COPY . .
 
-# Expone el puerto (el valor de la variable ENV)
-EXPOSE ${port}
+      # Expone el puerto (el valor de la variable ENV)
+      EXPOSE ${port}
 
-# Comando para arrancar la aplicación
-CMD ["npm", "start"]
-`,
+      # Comando para arrancar la aplicación
+      CMD ["npm", "start"]
+      `, 
     };
 
     // Return the corresponding Dockerfile template for the given technology
