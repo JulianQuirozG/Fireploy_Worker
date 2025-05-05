@@ -214,7 +214,8 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Ejecutar el servidor estático
-      CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
+      ##CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
+      CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "${port}"]
       `,
 
       express: `# Imagen base oficial de Node.js
