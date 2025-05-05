@@ -206,7 +206,7 @@ export class DockerfileService {
       RUN npm install -g serve
 
       # Copiar archivos construidos desde el builder
-      COPY --from=builder /app/dist/*/browser ./app${id_project}
+      COPY --from=builder /app/dist/*/browser ./app/app${id_project}
 
       # Exponer el puerto interno
       EXPOSE ${port}
@@ -214,6 +214,7 @@ export class DockerfileService {
       # Ejecutar el servidor estático
       CMD ["sh", "-c", "serve -s app${id_project} -l ${port}"]
       `,
+
       express: `# Imagen base oficial de Node.js
       FROM node:18-alpine
 
