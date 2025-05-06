@@ -202,7 +202,7 @@ export class DockerfileService {
       # Etapa 2: servidor de archivos estáticos
       FROM node:18-alpine
 
-      WORKDIR /app/app${id_project}
+      WORKDIR /app
 
       # Instalar serve para servir archivos
       RUN npm install -g serve
