@@ -210,14 +210,15 @@ export class DockerfileService {
 
       # Copiar archivos generados del build
       
-      COPY --from=builder /app/dist/*/browser ./app${id_project}
-      COPY --from=builder /app/dist/*/browser .
+      ##COPY --from=builder /app/dist/*/browser ./app${id_project}
+      COPY --from=builder /app/dist/*/ /app/app5/
 
       # Exponer el puerto
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "/app${id_project}"]
+      CMD ["sh", "-c", "serve -l ${port}", "app${id_project}",  "--single"]
+      ##CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "/app${id_project}"]
       `,
 
       express: `# Imagen base oficial de Node.js
