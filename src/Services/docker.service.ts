@@ -217,7 +217,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}"]
+      CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "/app${id_project}"]
       `,
 
       express: `# Imagen base oficial de Node.js
