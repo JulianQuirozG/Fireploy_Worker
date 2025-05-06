@@ -177,44 +177,46 @@ export class DockerfileService {
       CMD ["apache2-foreground"]`,
 
       angular: `
-      # Etapa 1: Build de Angular
+      # Etapa 1: Construcción del entorno de desarrollo
       FROM node:18-alpine AS builder
 
-      # Argumentos para personalización
+      # Instala Angular CLI globalmente
+      RUN npm install -g @angular/cli
 
       WORKDIR /app
 
-      # Instalar dependencias
       COPY package*.json ./
       RUN npm install
 
-      # Copiar código fuente
+      RUN npm install -g serve
+
       COPY . .
 
-      # Reemplazar el environment.prod.ts con basePath correcto
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}' };" > src/environments/environment.prod.ts
+      # Reemplaza las variables de entorno de Angular
       RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
       RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
 
-      # Build con base-href para rutas correctas en NGINX
-      RUN npm run build -- --configuration production --base-href /app${id_project}/
+      # Construye la aplicación en producción
+      RUN npm run build -- --configuration production 
 
-      # Etapa 2: Imagen final para servir la app
+      # Etapa 2: servidor de archivos estáticos
       FROM node:18-alpine
 
-      WORKDIR /app
+      WORKDIR /app/app${id_project}
 
-      # Instalar serve
+      # Instalar serve para servir archivos
       RUN npm install -g serve
 
-      # Copiar archivos construidos desde el builder
-      COPY --from=builder /app/dist/*/browser/ ./app${id_project}/
+      # Copiar archivos generados del build
+      
+      COPY --from=builder /app/dist/*/browser .
+      COPY --from=builder /app/dist/*/browser ./app${id_project}
 
-      # Exponer el puerto inte rno
+      # Exponer el puerto
       EXPOSE ${port}
 
-      # Ejecutar el servidor estático
-      CMD ["sh", "-c", "serve -s ./app${id_project}/ -l ${port}"]
+      # Comando para correr la aplicación en producción
+      CMD ["sh", "-c", "serve -l ${port}"]
       `,
 
       express: `# Imagen base oficial de Node.js
