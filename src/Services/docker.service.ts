@@ -210,7 +210,7 @@ export class DockerfileService {
       # Copiar archivos generados del build
       
       ##COPY --from=builder /app/dist/*/browser ./app${id_project}
-      COPY --from=builder /app/dist/*/browser .
+      COPY --from=builder /app/dist/*/browser ./app${id_project}
 
       # Exponer el puerto
       EXPOSE ${port}
