@@ -202,7 +202,7 @@ export class DockerfileService {
       # Etapa 2: servidor de archivos estáticos
       FROM node:18-alpine
 
-      WORKDIR /app
+      WORKDIR /app/app${id_project}
 
       # Instalar serve para servir archivos
       RUN npm install -g serve
@@ -210,14 +210,14 @@ export class DockerfileService {
       # Copiar archivos generados del build
       
       ##COPY --from=builder /app/dist/*/browser ./app${id_project}
-      COPY --from=builder /app/dist/*/browser /app/app5/
+      COPY --from=builder /app/dist/*/browser .
 
       # Exponer el puerto
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
       CMD ["sh", "-c", "serve -l ${port}", "app${id_project}",  "--single"]
-      ##CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "/app${id_project}"]
+      ##CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "app${id_project}"]
       `,
 
       express: `# Imagen base oficial de Node.js
