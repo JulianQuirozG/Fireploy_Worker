@@ -123,14 +123,14 @@ export class systemProcessor {
       };
       if (repositorio.tipo === 'B') {
         env_repositorio = {
-          BASE_PATH: `/api${proyect.id}`,
-          URL_FRONTEND:`https://${process.env.APP_HOST}/app${proyect.id}`,
+          BASE_PATH: `/api${proyect.id}/`,
+          URL_FRONTEND:`https://${process.env.APP_HOST}/app${proyect.id}/`,
           ...env_repositorio,
         };
       } else {
         env_repositorio = {
-          BASE_PATH: `/app${proyect.id}`,
-          URL_BACKEND:`https://${process.env.APP_HOST}/api${proyect.id}`,
+          BASE_PATH: `/app${proyect.id}/`,
+          URL_BACKEND:`https://${process.env.APP_HOST}/api${proyect.id}/`,
           ...env_repositorio,
         };
       }
@@ -167,11 +167,11 @@ export class systemProcessor {
       }
 
       if(repositorio.tipo === 'B'){
-        envLinesFrontend={
+        envLinesBackend={
           ...env_repositorio
         }
       }else{
-        envLinesBackend={
+        envLinesFrontend={
           ...env_repositorio
         }
       }

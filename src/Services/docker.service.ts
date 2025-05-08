@@ -14,9 +14,9 @@ export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
   private readonly systemService = new SystemService();
   private readonly prefixMap = {
-    vite: 'VITE_',
-    NextJs: 'NEXT_PUBLIC_',
-    React: 'REACT_APP_',
+    Vite: 'VITE_',
+    Nextjs: 'NEXT_PUBLIC_',
+    React: 'VITE_',
   };
 
   /**
