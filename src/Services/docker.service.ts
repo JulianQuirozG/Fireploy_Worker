@@ -499,7 +499,13 @@ export class DockerfileService {
     }
   }
 
-  async createDockerCompose(id: number, port: number) {
+  async createDockerCompose(id: number, port: number, envBackend: any[],envFrontend: any[]) {
+    const envLinesBackend = Object.entries(envBackend)
+    .map(([key, value]) => `- ${key}=${value}`)
+    .join('\n');
+    const envLinesFrontend = Object.entries(envFrontend)
+    .map(([key, value]) => `- ${key}=${value}`)
+    .join('\n');
     const composePath = path.join(
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
@@ -519,7 +525,7 @@ services:
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_URL_BACKEND=http://${process.env.IP}:${port + 1}
+      ${envLinesFrontend}
     networks:
       - default
   backend:
@@ -529,6 +535,8 @@ services:
     container_name: backend_${id}
     ports:
       - "${port + 1}:${port + 1}"
+    environment:
+      ${envLinesBackend}
     networks:
       - default
       - ${process.env.DOCKER_NETWORK}
@@ -541,7 +549,9 @@ networks:
 `.trim();
 
     try {
+      console.log("A punto de actualizar")
       fs.writeFileSync(composePath, composeContent);
+      console.log("A actualizado")
     } catch (error) {
       console.log('Error creando el docker compose' + error);
     }
