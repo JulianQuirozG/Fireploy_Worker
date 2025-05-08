@@ -549,7 +549,9 @@ networks:
 `.trim();
 
     try {
+      console.log("A punto de actualizar")
       fs.writeFileSync(composePath, composeContent);
+      console.log("A actualizado")
     } catch (error) {
       console.log('Error creando el docker compose' + error);
     }
