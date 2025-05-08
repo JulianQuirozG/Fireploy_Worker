@@ -502,10 +502,10 @@ export class DockerfileService {
   async createDockerCompose(id: number, port: number, envBackend: any[],envFrontend: any[]) {
     const envLinesBackend = Object.entries(envBackend)
     .map(([key, value]) => `- ${key}=${value}`)
-    .join('\n');
+    .join('\n      ');
     const envLinesFrontend = Object.entries(envFrontend)
     .map(([key, value]) => `- ${key}=${value}`)
-    .join('\n');
+    .join('\n      ');
     const composePath = path.join(
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
