@@ -72,6 +72,8 @@ export class systemProcessor {
       db_Host = process.env.MONGO_CONTAINER_NAME;
     }
 
+    let envLinesBackend,envLinesFrontend;
+
     //Prepare repositorios
     for (const [index, repositorio] of repositorios.entries()) {
       if (
@@ -164,6 +166,16 @@ export class systemProcessor {
         };
       }
 
+      if(repositorio.tipo === 'B'){
+        envLinesFrontend={
+          ...env_repositorio
+        }
+      }else{
+        envLinesBackend={
+          ...env_repositorio
+        }
+      }
+
       //Create Dockerfile
       const dockerfilePath = this.dockerfileService.generateDockerfile(
         proyect.id,
@@ -200,6 +212,8 @@ export class systemProcessor {
         await this.dockerfileService.createDockerCompose(
           proyect.id,
           proyect.puerto,
+          envLinesBackend,
+          envLinesFrontend
         );
 
       console.log(
