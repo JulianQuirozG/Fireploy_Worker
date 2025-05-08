@@ -40,6 +40,9 @@ export class DockerfileService {
     const envLines = Object.entries(env[0])
       .map(([key, value]) => `ENV ${key}="${value}"`)
       .join('\n');
+    const envLinesAngular = Object.entries(env[0])
+      .map(([key, value]) => `${key}:'${value}'`)
+      .join(', ');
 
     const templates = {
       Nextjs: `
@@ -193,8 +196,8 @@ export class DockerfileService {
       COPY . .
 
       # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
+      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.development.ts
     
       # Construye la aplicación en producción
       RUN npm run build -- --configuration production --base-href /app${id_project}/  --deploy-url /app${id_project}/

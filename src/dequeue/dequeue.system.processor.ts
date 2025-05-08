@@ -122,11 +122,13 @@ export class systemProcessor {
       if (repositorio.tipo === 'B') {
         env_repositorio = {
           BASE_PATH: `/api${proyect.id}`,
+          URL_FRONTEND:`https://${process.env.HOST}/app${proyect.id}`,
           ...env_repositorio,
         };
       } else {
         env_repositorio = {
           BASE_PATH: `/app${proyect.id}`,
+          URL_BACKEND:`https://${process.env.HOST}/api${proyect.id}`,
           ...env_repositorio,
         };
       }
