@@ -14,9 +14,9 @@ export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
   private readonly systemService = new SystemService();
   private readonly prefixMap = {
-    vite: 'VITE_',
-    NextJs: 'NEXT_PUBLIC_',
-    React: 'REACT_APP_',
+    Vite: 'VITE_',
+    Nextjs: 'NEXT_PUBLIC_',
+    React: 'VITE_',
   };
 
   /**
@@ -116,7 +116,7 @@ export class DockerfileService {
       CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
-      node: `# Usa una versión estable de Node.js como base
+      Node: `# Usa una versión estable de Node.js como base
       FROM node:18
 
       # Establece el directorio de trabajo dentro del contenedor
@@ -142,7 +142,7 @@ export class DockerfileService {
       # Usa un entrypoint flexible para adaptarse a cualquier framework
       CMD ["npm", "run", "dev"] `,
 
-      python: `# Use Python 3.9 as the base image
+      Python: `# Use Python 3.9 as the base image
       FROM python:3.9
       
       # Set the working directory inside the container
@@ -165,7 +165,7 @@ export class DockerfileService {
       # Start the application
       CMD ["python", "app.py"]`,
 
-        php: `# Use PHP 8.1 with Apache
+      Php: `# Use PHP 8.1 with Apache
       FROM php:8.1-apache
       
       # Copy application files to the Apache server directory
@@ -179,7 +179,7 @@ export class DockerfileService {
       # Start Apache in the foreground
       CMD ["apache2-foreground"]`,
 
-      angular: `
+      Angular: `
       # Etapa 1: Construcción del entorno de desarrollo
       FROM node:18-alpine AS builder
 
@@ -223,7 +223,7 @@ export class DockerfileService {
       ##CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "app${id_project}"]
       `,
 
-      express: `# Imagen base oficial de Node.js
+      Expressjs: `# Imagen base oficial de Node.js
       FROM node:18-alpine
 
       # Establece variable de entorno del puerto
