@@ -7,12 +7,10 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
-import { SystemService } from './system.service';
 
 @Injectable()
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
-  private readonly systemService = new SystemService();
   private readonly prefixMap = {
     vite: 'VITE_',
     NextJs: 'NEXT_PUBLIC_',
@@ -286,13 +284,13 @@ CMD ["npm", "start"]
    * @returns The full path of the generated Dockerfile.
    * @throws Error if the specified language is not supported.
    */
-  generateDockerfile(
+  async generateDockerfile(
     id_project: string,
     projectPath: string,
     language: string,
     port: number,
     env: any[],
-  ): string {
+  ): Promise<string> {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
@@ -303,7 +301,7 @@ CMD ["npm", "start"]
 
     // Create and write the Dockerfile
 
-    fs.writeFileSync(dockerfilePath, dockerFile);
+    await fs.writeFileSync(dockerfilePath, dockerFile);
 
     return dockerfilePath;
   }
@@ -337,7 +335,7 @@ CMD ["npm", "start"]
 
       console.log(runCmd);
       await this.executeCommand(buildCmd);
-      await this.executeCommand(runCmd);
+      //await this.executeCommand(runCmd);
 
       return `Contenedor ${containerName} corriendo en el puerto ${port}`;
     } catch (error) {
@@ -534,7 +532,7 @@ networks:
 `.trim();
 
     try {
-      fs.writeFileSync(composePath, composeContent);
+      await fs.writeFileSync(composePath, composeContent);
     } catch (error) {
       console.log('Error creando el docker compose' + error);
     }
