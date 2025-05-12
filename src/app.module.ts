@@ -19,7 +19,11 @@ import { NginxConfigGenerator } from './Services/nginx.service';
         port: +process.env.REDIS_PORT,
       },
     }),
-    BullModule.registerQueue({ name: 'deploy' }, { name: 'data_base' }),
+    BullModule.registerQueue(
+      { name: 'deploy' },
+      { name: 'data_base' },
+      { name: 'project_manager' },
+    ),
   ],
   providers: [
     AppService,

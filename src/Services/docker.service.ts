@@ -340,14 +340,16 @@ export class DockerfileService {
 
       let runCmd = ``;
       if (envLines) {
+        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
       } else {
+        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
       }
 
       console.log(runCmd);
       await this.executeCommand(buildCmd);
-      //await this.executeCommand(runCmd);
+      await this.executeCommand(runCmd);
 
       return `Contenedor ${containerName} corriendo en el puerto ${port}`;
     } catch (error) {
