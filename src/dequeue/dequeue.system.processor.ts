@@ -5,9 +5,7 @@ import { DockerfileService } from 'src/Services/docker.service';
 
 @Processor('data_base')
 export class systemProcessor {
-  constructor(private dockerfileService: DockerfileService) {
-    console.log('⚠️ SystemProcessor instanciado | PID:', process.pid);
-  }
+  constructor(private dockerfileService: DockerfileService) {}
 
   @Process({ name: 'create_DB', concurrency: 1 })
   async createDbJob(job: Job) {
@@ -19,7 +17,7 @@ export class systemProcessor {
       !job.data.contrasenia
     )
       throw new BadRequestException(
-        `No se ha enviado el containerName, el nombre, usuario o contrasenia de la base de datos`,
+        `No se ha enviado el containerName, el nombre, usuario o contrasenia de la base de datos  ErrorCode-006`,
       );
     await this.dockerfileService.createMySQLDatabaseAndUser(
       job.data.containerName,

@@ -1,10 +1,10 @@
 /**
  * generate-nginx.ts
- * 
+ *
  * Ejecuta con: sudo ts-node generate-nginx.ts
  */
 
-import { writeFileSync, mkdirSync, existsSync, appendFileSync, unlinkSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
@@ -30,12 +30,10 @@ export class NginxConfigGenerator {
     // Asegura que exista el directorio de includes
     if (!existsSync(this.includesDir)) {
       mkdirSync(this.includesDir, { recursive: true });
-      console.log(`📁 Directorio creado: ${this.includesDir}`);
     }
 
     if (existsSync(this.includeFile)) {
       unlinkSync(this.includeFile);
-      console.log(`🗑️ Archivo anterior eliminado: ${this.includeFile}`);
     }
 
     // Construye la configuración con bloques location
@@ -44,7 +42,8 @@ export class NginxConfigGenerator {
       const loc = alias.path ? `/${alias.path}` : '/';
       const proxyPass = `http://${alias.target}/${alias.path}`;
 
-      config += `
+      config +=
+        `
 location ${loc} {
     proxy_pass ${proxyPass};
     proxy_http_version 1.1;
@@ -70,7 +69,7 @@ location ${loc} {
       await execSync('systemctl reload nginx', { stdio: 'inherit' });
       console.log('🚀 NGINX recargado correctamente');
     } catch (e) {
-      console.error('❌ Error al recargar NGINX:', e);
+      console.error('❌ Error al recargar NGINX:', e, ' ErrorCode-005');
       process.exit(1);
     }
   }

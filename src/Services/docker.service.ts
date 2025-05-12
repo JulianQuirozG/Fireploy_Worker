@@ -3,7 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
@@ -12,9 +17,9 @@ import { exec, execSync } from 'child_process';
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
   private readonly prefixMap = {
-    vite: 'VITE_',
-    NextJs: 'NEXT_PUBLIC_',
-    React: 'REACT_APP_',
+    Vite: 'VITE_',
+    Nextjs: 'NEXT_PUBLIC_',
+    React: 'VITE_',
   };
 
   /**
@@ -38,6 +43,9 @@ export class DockerfileService {
     const envLines = Object.entries(env[0])
       .map(([key, value]) => `ENV ${key}="${value}"`)
       .join('\n');
+    const envLinesAngular = Object.entries(env[0])
+      .map(([key, value]) => `${key}:'${value}'`)
+      .join(', ');
 
     const templates = {
       Nextjs: `
@@ -111,7 +119,7 @@ export class DockerfileService {
       CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
-      node: `# Usa una versión estable de Node.js como base
+      Node: `# Usa una versión estable de Node.js como base
       FROM node:18
 
       # Establece el directorio de trabajo dentro del contenedor
@@ -137,7 +145,7 @@ export class DockerfileService {
       # Usa un entrypoint flexible para adaptarse a cualquier framework
       CMD ["npm", "run", "dev"] `,
 
-      python: `# Use Python 3.9 as the base image
+      Python: `# Use Python 3.9 as the base image
       FROM python:3.9
       
       # Set the working directory inside the container
@@ -160,7 +168,7 @@ export class DockerfileService {
       # Start the application
       CMD ["python", "app.py"]`,
 
-        php: `# Use PHP 8.1 with Apache
+      Php: `# Use PHP 8.1 with Apache
       FROM php:8.1-apache
       
       # Copy application files to the Apache server directory
@@ -174,7 +182,8 @@ export class DockerfileService {
       # Start Apache in the foreground
       CMD ["apache2-foreground"]`,
 
-      angular: `# Etapa 1: Construcción del entorno de desarrollo
+      Angular: `
+      # Etapa 1: Construcción del entorno de desarrollo
       FROM node:18-alpine AS builder
 
       # Instala Angular CLI globalmente
@@ -190,55 +199,58 @@ export class DockerfileService {
       COPY . .
 
       # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/' };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/' };" > src/environments/environment.development.ts
-
+      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.development.ts
+    
       # Construye la aplicación en producción
-      RUN npm run build -- --configuration production 
+      RUN npm run build -- --configuration production --base-href /app${id_project}/  --deploy-url /app${id_project}/
 
       # Etapa 2: servidor de archivos estáticos
       FROM node:18-alpine
 
-      WORKDIR /app/app${id_project}
+      WORKDIR /app
 
       # Instalar serve para servir archivos
       RUN npm install -g serve
 
       # Copiar archivos generados del build
       
-      COPY --from=builder /app/dist/*/browser .
+      ##COPY --from=builder /app/dist/*/browser ./app${id_project}
       COPY --from=builder /app/dist/*/browser ./app${id_project}
 
       # Exponer el puerto
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
-      CMD ["sh", "-c", "serve -l ${port}"]`,
-      express: `# Imagen base oficial de Node.js
-FROM node:18-alpine
+      CMD ["sh", "-c", "serve -l ${port}",  ".", "app${id_project}" "--single"]
+      ##CMD ["sh", "-c", "serve -l ${port}", ".", "--base", "app${id_project}"]
+      `,
 
-# Establece variable de entorno del puerto
+      Expressjs: `# Imagen base oficial de Node.js
+      FROM node:18-alpine
 
-${envLines}
+      # Establece variable de entorno del puerto
 
-# Establece el directorio de trabajo
-WORKDIR /app
+      ${envLines}
 
-# Copia las dependencias
-COPY package*.json ./
+      # Establece el directorio de trabajo
+      WORKDIR /app
 
-# Instala dependencias
-RUN npm install
+      # Copia las dependencias
+      COPY package*.json ./
 
-# Copia el resto de los archivos
-COPY . .
+      # Instala dependencias
+      RUN npm install
 
-# Expone el puerto (el valor de la variable ENV)
-EXPOSE ${port}
+      # Copia el resto de los archivos
+      COPY . .
 
-# Comando para arrancar la aplicación
-CMD ["npm", "start"]
-`,
+      # Expone el puerto (el valor de la variable ENV)
+      EXPOSE ${port}
+
+      # Comando para arrancar la aplicación
+      CMD ["npm", "start"]
+      `,
     };
 
     // Return the corresponding Dockerfile template for the given technology
@@ -296,7 +308,7 @@ CMD ["npm", "start"]
     const dockerFile = this.getDockerFile(language, port, env, id_project);
 
     if (!dockerFile) {
-      throw new Error(`Language ${language} is not supported.`);
+      throw new Error(`Language ${language} is not supported.  ErrorCode-002`);
     }
 
     // Create and write the Dockerfile
@@ -339,7 +351,9 @@ CMD ["npm", "start"]
 
       return `Contenedor ${containerName} corriendo en el puerto ${port}`;
     } catch (error) {
-      throw new Error(`Error al ejecutar Docker: ${error.message}`);
+      throw new Error(
+        `Error al ejecutar Docker: ${error.message}  ErrorCode-003`,
+      );
     }
   }
 
@@ -436,7 +450,6 @@ CMD ["npm", "start"]
     dbUser: string,
     dbPassword: string,
   ) {
-    console.log(process.env.MYSQL_ROOT_PASSWORD);
     const command = `
   docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
@@ -449,7 +462,7 @@ CMD ["npm", "start"]
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error al crear DB y usuario en MySQL:`, stderr);
-          throw new BadRequestException(error);
+          throw new BadRequestException(error + ' ErrorCode-007');
           console.log(error);
           reject(error);
         } else {
@@ -490,7 +503,18 @@ CMD ["npm", "start"]
     }
   }
 
-  async createDockerCompose(id: number, port: number) {
+  async createDockerCompose(
+    id: number,
+    port: number,
+    envBackend: any[],
+    envFrontend: any[],
+  ) {
+    const envLinesBackend = Object.entries(envBackend)
+      .map(([key, value]) => `- ${key}=${value}`)
+      .join('\n      ');
+    const envLinesFrontend = Object.entries(envFrontend)
+      .map(([key, value]) => `- ${key}=${value}`)
+      .join('\n      ');
     const composePath = path.join(
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
@@ -510,7 +534,7 @@ services:
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_URL_BACKEND=http://${process.env.IP}:${port + 1}
+      ${envLinesFrontend}
     networks:
       - default
   backend:
@@ -520,6 +544,8 @@ services:
     container_name: backend_${id}
     ports:
       - "${port + 1}:${port + 1}"
+    environment:
+      ${envLinesBackend}
     networks:
       - default
       - ${process.env.DOCKER_NETWORK}
@@ -543,7 +569,9 @@ networks:
       );
       await this.executeCommand(`docker compose -f ${composePath} up -d`);
     } catch (error) {
-      console.log('Error ejecutando el docker compose: ' + error);
+      console.log(
+        'Error ejecutando el docker compose: ' + error + ' ErrorCode-004',
+      );
     }
     return composePath;
   }
