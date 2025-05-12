@@ -3,16 +3,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
-import { SystemService } from './system.service';
 
 @Injectable()
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
-  private readonly systemService = new SystemService();
   private readonly prefixMap = {
     Vite: 'VITE_',
     Nextjs: 'NEXT_PUBLIC_',
@@ -247,7 +250,7 @@ export class DockerfileService {
 
       # Comando para arrancar la aplicación
       CMD ["npm", "start"]
-      `, 
+      `,
     };
 
     // Return the corresponding Dockerfile template for the given technology
@@ -293,24 +296,24 @@ export class DockerfileService {
    * @returns The full path of the generated Dockerfile.
    * @throws Error if the specified language is not supported.
    */
-  generateDockerfile(
+  async generateDockerfile(
     id_project: string,
     projectPath: string,
     language: string,
     port: number,
     env: any[],
-  ): string {
+  ): Promise<string> {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
 
     if (!dockerFile) {
-      throw new Error(`Language ${language} is not supported.`);
+      throw new Error(`Language ${language} is not supported.  ErrorCode-002`);
     }
 
     // Create and write the Dockerfile
 
-    fs.writeFileSync(dockerfilePath, dockerFile);
+    await fs.writeFileSync(dockerfilePath, dockerFile);
 
     return dockerfilePath;
   }
@@ -344,11 +347,13 @@ export class DockerfileService {
 
       console.log(runCmd);
       await this.executeCommand(buildCmd);
-      await this.executeCommand(runCmd);
+      //await this.executeCommand(runCmd);
 
       return `Contenedor ${containerName} corriendo en el puerto ${port}`;
     } catch (error) {
-      throw new Error(`Error al ejecutar Docker: ${error.message}`);
+      throw new Error(
+        `Error al ejecutar Docker: ${error.message}  ErrorCode-003`,
+      );
     }
   }
 
@@ -445,7 +450,6 @@ export class DockerfileService {
     dbUser: string,
     dbPassword: string,
   ) {
-    console.log(process.env.MYSQL_ROOT_PASSWORD);
     const command = `
   docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
@@ -458,7 +462,7 @@ export class DockerfileService {
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error al crear DB y usuario en MySQL:`, stderr);
-          throw new BadRequestException(error);
+          throw new BadRequestException(error + ' ErrorCode-007');
           console.log(error);
           reject(error);
         } else {
@@ -499,13 +503,18 @@ export class DockerfileService {
     }
   }
 
-  async createDockerCompose(id: number, port: number, envBackend: any[],envFrontend: any[]) {
+  async createDockerCompose(
+    id: number,
+    port: number,
+    envBackend: any[],
+    envFrontend: any[],
+  ) {
     const envLinesBackend = Object.entries(envBackend)
-    .map(([key, value]) => `- ${key}=${value}`)
-    .join('\n      ');
+      .map(([key, value]) => `- ${key}=${value}`)
+      .join('\n      ');
     const envLinesFrontend = Object.entries(envFrontend)
-    .map(([key, value]) => `- ${key}=${value}`)
-    .join('\n      ');
+      .map(([key, value]) => `- ${key}=${value}`)
+      .join('\n      ');
     const composePath = path.join(
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
@@ -549,9 +558,7 @@ networks:
 `.trim();
 
     try {
-      console.log("A punto de actualizar")
-      fs.writeFileSync(composePath, composeContent);
-      console.log("A actualizado")
+      await fs.writeFileSync(composePath, composeContent);
     } catch (error) {
       console.log('Error creando el docker compose' + error);
     }
@@ -562,7 +569,9 @@ networks:
       );
       await this.executeCommand(`docker compose -f ${composePath} up -d`);
     } catch (error) {
-      console.log('Error ejecutando el docker compose: ' + error);
+      console.log(
+        'Error ejecutando el docker compose: ' + error + ' ErrorCode-004',
+      );
     }
     return composePath;
   }

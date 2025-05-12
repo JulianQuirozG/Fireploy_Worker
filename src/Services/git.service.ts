@@ -53,7 +53,9 @@ export class GitService {
       await this.git.clone(url, fullPath);
       return `${fullPath}`;
     } catch (error) {
-      throw new Error(`Error cloning the repository: ${error.message}`);
+      throw new Error(
+        `Error cloning the repository: ${error.message}  ErrorCode-001`,
+      );
     }
   }
 }
