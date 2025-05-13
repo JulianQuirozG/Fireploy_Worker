@@ -465,10 +465,13 @@ export class DockerfileService {
     await this.checkAndCreateContainer(
       process.env.MONGO_CONTAINER_NAME || 'mongo_container',
       'mongo:latest',
-      Number(process.env.MONGO_PORT) || 27017,
+      Number(process.env.MONGO_PORT) || 27018,
       process.env.MONGO_VOLUME || 'mongo_data',
       networkName,
-      [],
+      [
+        `MONGO_INITDB_ROOT_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
+        `MONGO_INITDB_ROOT_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+      ],
     );
   }
 
@@ -489,7 +492,7 @@ export class DockerfileService {
     dbName: string,
     dbUser: string,
     dbPassword: string,
-  ) {
+  ): Promise<string> {
     const command = `
   docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
@@ -498,19 +501,64 @@ export class DockerfileService {
     FLUSH PRIVILEGES;"
 `;
 
-    return new Promise((resolve, reject) => {
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error al crear DB y usuario en MySQL:`, stderr);
-          throw new BadRequestException(error + ' ErrorCode-007');
-          console.log(error);
-          reject(error);
-        } else {
-          console.log('creda');
-          resolve(stdout);
-        }
+    try {
+      new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-007'));
+          } else {
+            console.log('creda');
+            resolve(stdout);
+          }
+        });
       });
-    });
+      //return conection uri
+      return `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MYSQL_PORT}/${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async createMyNoSQLDatabaseAndUser(
+    containerName: string,
+    dbName: string,
+    dbUser: string,
+    dbPassword: string,
+  ): Promise<string> {
+    const mongoCommand = `
+    docker exec ${containerName} mongosh --port ${process.env.MONGO_PORT} -u "${process.env.MONGO_INITDB_ROOT_USERNAME}" -p "${process.env.MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "
+      const db = db.getSiblingDB('${dbName}');
+      db.createUser({
+        user: '${dbUser}',
+        pwd: '${dbPassword}',
+        roles: [{ role: 'readWrite', db: '${dbName}' }]
+      });
+      db.users.insertOne({
+        username: '${dbUser}',
+        role: 'readWrite',
+        createdAt: new Date()
+      });
+    "
+  `;
+
+    try {
+      new Promise((resolve, reject) => {
+        exec(mongoCommand, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en No Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-012'));
+          } else {
+            console.log('creda');
+            resolve(stdout);
+          }
+        });
+      });
+      //return conection uri
+      return `mongodb://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MONGO_PORT}/${encodeURIComponent(dbName)}?authSource=${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   /**
