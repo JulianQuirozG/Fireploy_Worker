@@ -501,19 +501,23 @@ export class DockerfileService {
     FLUSH PRIVILEGES;"
 `;
 
-    return new Promise((resolve, reject) => {
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error al crear DB y usuario en MySQL:`, stderr);
-          throw new BadRequestException(error + ' ErrorCode-007');
-          console.log(error);
-          reject(error);
-        } else {
-          console.log('creda');
-          resolve(stdout);
-        }
+    try {
+      new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-007'));
+          } else {
+            console.log('creda');
+            resolve(stdout);
+          }
+        });
       });
-    });
+      //return conection uri
+      return `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MYSQL_PORT}/${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async createMyNoSQLDatabaseAndUser(
