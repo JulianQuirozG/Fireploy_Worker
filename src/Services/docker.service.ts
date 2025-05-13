@@ -3,12 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
@@ -258,6 +253,17 @@ export class DockerfileService {
     return templates[tech];
   }
 
+  /**
+   * Parses and formats environment variables according to the framework's convention.
+   *
+   * This method adds a framework-specific prefix to each environment variable
+   * (e.g., VITE_, NEXT_PUBLIC_, or REACT_APP_) based on the selected frontend framework.
+   * If the framework is not supported, it returns the variables unchanged.
+   *
+   * @param framework The frontend framework being used ('Vite', 'Nextjs', or 'React').
+   * @param env A record of environment variables to be transformed.
+   * @returns An object containing the transformed JSON and a string representation of the variables.
+   */
   paserEnviromentFramework(
     framework: 'Vite' | 'Nextjs' | 'React',
     env: Record<string, string>,
@@ -318,6 +324,17 @@ export class DockerfileService {
     return dockerfilePath;
   }
 
+  /**
+   * Builds and runs a Docker container for the given project.
+   *
+   * @param Name - A unique identifier for the project, used for naming the image and container.
+   * @param projectPath - The absolute path to the project's directory.
+   * @param language - The programming language or tech stack used (used for logging or templating).
+   * @param port - The port on which the container should run.
+   * @param env - An array of environment variable objects to inject into the container.
+   * @returns A success message indicating the container is running.
+   * @throws An error if the Docker build or run commands fail.
+   */
   async buildAndRunContainer(
     Name: string,
     projectPath: string,
@@ -359,6 +376,13 @@ export class DockerfileService {
     }
   }
 
+  /**
+   * Executes a shell command asynchronously using the Node.js `exec` function.
+   *
+   * @param command - The shell command to execute.
+   * @returns A Promise that resolves when the command executes successfully,
+   *          or rejects with the error if it fails.
+   */
   private executeCommand(command: string): Promise<void> {
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
@@ -373,6 +397,16 @@ export class DockerfileService {
     });
   }
 
+  /**
+   * Checks if a Docker container is running, and if not, starts or creates it.
+   *
+   * @param containerName - The name of the Docker container.
+   * @param image - The Docker image to use when creating the container.
+   * @param port - The port to expose from the container.
+   * @param volume - The volume to mount inside the container.
+   * @param network - The Docker network to connect the container to.
+   * @param envVars - Optional array of environment variables (e.g., ["VAR=value"]).
+   */
   async checkAndCreateContainer(
     containerName: string,
     image: string,
@@ -412,6 +446,10 @@ export class DockerfileService {
     }
   }
 
+  /**
+   * Sets up the required database containers (MySQL and MongoDB).
+   *
+   */
   async setupDatabases() {
     const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
     this.createNetwork(networkName);
@@ -505,6 +543,15 @@ export class DockerfileService {
     }
   }
 
+  /**
+   * Creates and runs a Docker Compose setup for a frontend and backend service.
+   *
+   * @param id The project ID used for naming containers and folders.
+   * @param port The starting port number to be used by the frontend; the backend uses `port + 1`.
+   * @param envBackend An array of environment variables for the backend container.
+   * @param envFrontend An array of environment variables for the frontend container.
+   * @returns The full path to the generated `docker-compose.yml` file.
+   */
   async createDockerCompose(
     id: number,
     port: number,
@@ -576,5 +623,61 @@ networks:
       );
     }
     return composePath;
+  }
+
+  /**
+   * Stops a running Docker container created with `docker run`.
+   *
+   * @param containerName The name of the container to be stopped.
+   * @throws BadRequestException if the stop operation fails.
+   */
+  async stopDockerRun(containerName: string) {
+    try {
+      await this.executeCommand(`docker stop ${containerName}`);
+    } catch (error) {
+      throw new BadRequestException(error + ' ErrorCode-008');
+    }
+  }
+
+  /**
+   * Starts a Docker container that was previously created with `docker run`.
+   *
+   * @param containerName The name of the container to start.
+   * @throws BadRequestException if the start operation fails.
+   */
+  async startDockerRun(containerName: string) {
+    try {
+      await this.executeCommand(`docker start ${containerName}`);
+    } catch (error) {
+      throw new BadRequestException(error + ' ErrorCode-009');
+    }
+  }
+
+  /**
+   * Stops and removes containers defined in a Docker Compose file.
+   *
+   * @param yml_loc The full path to the Docker Compose YAML file.
+   * @throws BadRequestException if the stop operation fails.
+   */
+  async stopDockerCompose(yml_loc: string) {
+    try {
+      await this.executeCommand(`docker compose -f ${yml_loc} down`);
+    } catch (error) {
+      throw new BadRequestException(error + ' ErrorCode-010');
+    }
+  }
+
+  /**
+   * Starts containers defined in a Docker Compose file in detached mode.
+   *
+   * @param yml_loc The full path to the Docker Compose YAML file.
+   * @throws BadRequestException if the start operation fails.
+   */
+  async startDockerCompose(yml_loc: string) {
+    try {
+      await this.executeCommand(`docker compose -f ${yml_loc} up -d`);
+    } catch (error) {
+      throw new BadRequestException(error + ' ErrorCode-011');
+    }
   }
 }

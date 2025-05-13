@@ -7,6 +7,7 @@ import { DockerfileService } from './Services/docker.service';
 import { ConfigModule } from '@nestjs/config';
 import { GitService } from './Services/git.service';
 import { NginxConfigGenerator } from './Services/nginx.service';
+import { ProjectProcessor } from './dequeue/dequeue.project';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { NginxConfigGenerator } from './Services/nginx.service';
     AppService,
     WorkerProcessor,
     systemProcessor,
+    ProjectProcessor,
     DockerfileService,
     GitService,
     NginxConfigGenerator,
