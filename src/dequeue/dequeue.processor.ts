@@ -147,7 +147,7 @@ export class WorkerProcessor {
         const dockerfilePath = await this.dockerfileService.generateDockerfile(
           proyect.id,
           rute,
-          repositorio.tecnologia,
+          repositorio.framework,
           puertos,
           [env_repositorio],
         );
@@ -158,7 +158,7 @@ export class WorkerProcessor {
           rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
           type: repositorio.tipo,
           port: puertos,
-          language: repositorio.tecnologia,
+          language: repositorio.framework,
         });
 
         //Generate image if is type All
@@ -166,7 +166,7 @@ export class WorkerProcessor {
           await this.dockerfileService.buildAndRunContainer(
             proyect.id as unknown as string,
             rute,
-            repositorio.tecnologia,
+            repositorio.framework,
             puertos,
             [env_repositorio],
           );
