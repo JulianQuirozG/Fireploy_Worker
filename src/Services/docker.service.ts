@@ -265,14 +265,29 @@ WORKDIR /app${id_project}
 # Copia los archivos del proyecto
 COPY . .
 
+RUN mkdir -p config && \
+echo 'controllers:' > config/routes.yaml && \
+echo "  resource: '../src/Controller/'" >> config/routes.yaml && \
+echo "  type: attribute" >> config/routes.yaml && \
+echo "  prefix: /app${id_project}" >> config/routes.yaml
+
+
+
+
 # Ejecuta composer install para que funcione el autoload
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Instala Symfony CLI
+RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+    mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
 
 # Expone el puerto
 EXPOSE ${port}
 
 # Comando por defecto: iniciar servidor web embebido de PHP
-CMD ["php", "-S", "0.0.0.0:${port}", "-t", "public"]
+CMD ["symfony", "server:start", "--no-tls", "--allow-http", "--port=${port}", "--allow-all-ip"]
+
+
 `,
     };
 
