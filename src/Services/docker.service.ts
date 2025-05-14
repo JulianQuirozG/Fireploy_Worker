@@ -246,6 +246,34 @@ export class DockerfileService {
       # Comando para arrancar la aplicación
       CMD ["npm", "start"]
       `,
+      Symfony: `# Etapa 1: imagen base con PHP y extensiones necesarias
+FROM php:8.2-cli
+
+# Instala dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+    libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
+    zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
+    && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
+
+# Instala Composer desde la imagen oficial
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Establece el directorio de trabajo
+WORKDIR /app${id_project}
+
+# Copia los archivos del proyecto
+COPY . .
+
+# Ejecuta composer install para que funcione el autoload
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Expone el puerto
+EXPOSE ${port}
+
+# Comando por defecto: iniciar servidor web embebido de PHP
+CMD ["php", "-S", "0.0.0.0:${port}", "-t", "public"]
+`,
     };
 
     // Return the corresponding Dockerfile template for the given technology

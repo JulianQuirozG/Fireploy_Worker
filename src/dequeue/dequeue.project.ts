@@ -8,7 +8,6 @@ export class ProjectProcessor {
 
   @Process({ name: 'changeStatus', concurrency: 1 })
   async changeProjectStatusJob(job: Job) {
-    console.log(job.data);
     try {
       if (job.data.project.tipo_proyecto == 'M') {
         if (job.data.action == 'Stop') {
