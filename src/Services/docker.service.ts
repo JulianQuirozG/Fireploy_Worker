@@ -357,10 +357,8 @@ export class DockerfileService {
 
       let runCmd = ``;
       if (envLines) {
-        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
       } else {
-        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
       }
 
@@ -438,7 +436,12 @@ export class DockerfileService {
           ? envVars.map((env) => `-e ${env}`).join(' ')
           : '';
 
-        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}:/data ${envString} ${image} --port=${port}`;
+        if (containerName == process.env.MYSQL_CONTAINER_NAME) {
+          volume = `${volume}:/var/lib/mysql`;
+        } else {
+          volume = `${volume}:/data/db`;
+        }
+        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}  ${envString} ${image} --port=${port}`;
 
         console.log(command);
         await this.executeCommand(command);
@@ -465,7 +468,7 @@ export class DockerfileService {
     await this.checkAndCreateContainer(
       process.env.MONGO_CONTAINER_NAME || 'mongo_container',
       'mongo:latest',
-      Number(process.env.MONGO_PORT) || 27018,
+      Number(process.env.MONGO_PORT) || 3309,
       process.env.MONGO_VOLUME || 'mongo_data',
       networkName,
       [
@@ -508,7 +511,6 @@ export class DockerfileService {
             console.error(`Error al crear DB y usuario en Sql:`, stderr);
             reject(new Error(error + ' ErrorCode-007'));
           } else {
-            console.log('creda');
             resolve(stdout);
           }
         });
@@ -549,7 +551,6 @@ export class DockerfileService {
             console.error(`Error al crear DB y usuario en No Sql:`, stderr);
             reject(new Error(error + ' ErrorCode-012'));
           } else {
-            console.log('creda');
             resolve(stdout);
           }
         });
