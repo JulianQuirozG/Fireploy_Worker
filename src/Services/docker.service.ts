@@ -417,7 +417,7 @@ CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
 APP_ENV=local
 APP_KEY=base64:sEeLvWgOFti7RTxcWUekDqSy3ueqQnR9f+8wC4QO7HU=
 APP_DEBUG=true
-APP_URL=http://${process.env.IP_HOST}:${port}
+APP_URL=https://${process.env.IP_HOST}:${port}/app${id_project}
 APP_BASE_PATH=/app${id_project}
 APP_LOCALE=en
 APP_FALLBACK_LOCALE=en
