@@ -271,7 +271,7 @@ echo "  resource: '../src/Controller/'" >> config/routes.yaml && \
 echo "  type: attribute" >> config/routes.yaml && \
 echo "  prefix: /app${id_project}" >> config/routes.yaml
 
-
+RUN echo "APP_ENV=dev" > .env 
 
 
 # Ejecuta composer install para que funcione el autoload
