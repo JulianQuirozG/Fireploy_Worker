@@ -46,11 +46,10 @@ export class WorkerProcessor {
         if (
           !repositorio.tecnologia ||
           !repositorio.url ||
-          !repositorio.version ||
           !repositorio.framework
         )
           throw new NotFoundException(
-            `El repositorio con id ${repositorio.id} no posee 'tecnologia', 'url', 'version' o 'framework' ErrorCode-000`,
+            `El repositorio con id ${repositorio.id} no posee 'tecnologia', 'url' o 'framework' ErrorCode-000`,
           );
 
         //Clone repositorio
