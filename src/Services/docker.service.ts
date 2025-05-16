@@ -246,6 +246,87 @@ export class DockerfileService {
       # Comando para arrancar la aplicación
       CMD ["npm", "start"]
       `,
+      Symfony: `# Etapa 1: imagen base con PHP y extensiones necesarias
+FROM php:8.2-cli
+
+# Instala dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+    libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
+    zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
+    && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
+
+# Instala Composer desde la imagen oficial
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Establece el directorio de trabajo
+WORKDIR /app${id_project}
+
+# Copia los archivos del proyecto
+COPY . .
+
+RUN mkdir -p config && \
+echo 'controllers:' > config/routes.yaml && \
+echo "  resource: '../src/Controller/'" >> config/routes.yaml && \
+echo "  type: attribute" >> config/routes.yaml && \
+echo "  prefix: /app${id_project}" >> config/routes.yaml
+
+RUN echo "APP_ENV=dev" > .env 
+
+
+# Ejecuta composer install para que funcione el autoload
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Instala Symfony CLI
+RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+    mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+
+# Expone el puerto
+EXPOSE ${port}
+
+# Comando por defecto: iniciar servidor web embebido de PHP
+CMD ["symfony", "server:start", "--no-tls", "--allow-http", "--port=${port}", "--allow-all-ip"]
+
+
+      `,
+      Laravel: `# Etapa 1: imagen base con PHP y extensiones necesarias
+FROM php:8.2-cli
+
+# Instala dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+    libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
+    zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
+    && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
+
+# Instala Composer desde la imagen oficial
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copia el proyecto Laravel al contenedor
+COPY . app${id_project}
+
+# Establece directorio de trabajo
+WORKDIR app${id_project}
+
+# Instalar Node.js LTS y npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm
+
+RUN npm install
+
+RUN docker-php-ext-install pcntl
+
+# Ejecuta composer install para que funcione el autoload
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+
+# Expone el puerto donde Laravel servirá (por default 8000)
+EXPOSE ${port}
+
+# Comando de inicio: php artisan serve
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
+`,
       Springboot: `
       # Etapa 1: Construcción del proyecto con Maven y Java 17
         FROM maven:3.9.4-eclipse-temurin-17 AS builder
@@ -330,6 +411,11 @@ export class DockerfileService {
     env: any[],
   ): Promise<string> {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
+
+    const envFile = this.getEnvFile(language, id_project, port);
+    if (envFile) {
+      await fs.writeFileSync(`${projectPath}/.env`, envFile);
+    }
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
 
@@ -342,6 +428,64 @@ export class DockerfileService {
     await fs.writeFileSync(dockerfilePath, dockerFile);
 
     return dockerfilePath;
+  }
+
+  getEnvFile(language: string, id_project: string, port: number) {
+    const templates = {
+      Laravel: `
+     APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:sEeLvWgOFti7RTxcWUekDqSy3ueqQnR9f+8wC4QO7HU=
+APP_DEBUG=true
+APP_URL=https://${process.env.APP_HOST}/app${id_project}
+APP_BASE_PATH=/app${id_project}
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+APP_MAINTENANCE_DRIVER=file
+PHP_CLI_SERVER_WORKERS=4
+BCRYPT_ROUNDS=12
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+DB_CONNECTION=msql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=template_laravel
+DB_USERNAME=root
+DB_PASSWORD=
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+CACHE_STORE=file
+MEMCACHED_HOST=127.0.0.1
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+MAIL_MAILER=log
+MAIL_SCHEME=null
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME="Laravel"
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+VITE_APP_NAME="Laravel"
+      `,
+    };
+    return templates[language];
   }
 
   /**
@@ -377,10 +521,8 @@ export class DockerfileService {
 
       let runCmd = ``;
       if (envLines) {
-        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
       } else {
-        console.log('----------------------------------------2');
         runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
       }
 
@@ -458,7 +600,12 @@ export class DockerfileService {
           ? envVars.map((env) => `-e ${env}`).join(' ')
           : '';
 
-        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}:/data ${envString} ${image} --port=${port}`;
+        if (containerName == process.env.MYSQL_CONTAINER_NAME) {
+          volume = `${volume}:/var/lib/mysql`;
+        } else {
+          volume = `${volume}:/data/db`;
+        }
+        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}  ${envString} ${image} --port=${port}`;
 
         console.log(command);
         await this.executeCommand(command);
@@ -485,10 +632,13 @@ export class DockerfileService {
     await this.checkAndCreateContainer(
       process.env.MONGO_CONTAINER_NAME || 'mongo_container',
       'mongo:latest',
-      Number(process.env.MONGO_PORT) || 27017,
+      Number(process.env.MONGO_PORT) || 3309,
       process.env.MONGO_VOLUME || 'mongo_data',
       networkName,
-      [],
+      [
+        `MONGO_INITDB_ROOT_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
+        `MONGO_INITDB_ROOT_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+      ],
     );
   }
 
@@ -509,7 +659,7 @@ export class DockerfileService {
     dbName: string,
     dbUser: string,
     dbPassword: string,
-  ) {
+  ): Promise<string> {
     const command = `
   docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
@@ -518,19 +668,62 @@ export class DockerfileService {
     FLUSH PRIVILEGES;"
 `;
 
-    return new Promise((resolve, reject) => {
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error al crear DB y usuario en MySQL:`, stderr);
-          throw new BadRequestException(error + ' ErrorCode-007');
-          console.log(error);
-          reject(error);
-        } else {
-          console.log('creda');
-          resolve(stdout);
-        }
+    try {
+      new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-007'));
+          } else {
+            resolve(stdout);
+          }
+        });
       });
-    });
+      //return conection uri
+      return `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MYSQL_PORT}/${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async createMyNoSQLDatabaseAndUser(
+    containerName: string,
+    dbName: string,
+    dbUser: string,
+    dbPassword: string,
+  ): Promise<string> {
+    const mongoCommand = `
+    docker exec ${containerName} mongosh --port ${process.env.MONGO_PORT} -u "${process.env.MONGO_INITDB_ROOT_USERNAME}" -p "${process.env.MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "
+      const db = db.getSiblingDB('${dbName}');
+      db.createUser({
+        user: '${dbUser}',
+        pwd: '${dbPassword}',
+        roles: [{ role: 'readWrite', db: '${dbName}' }]
+      });
+      db.users.insertOne({
+        username: '${dbUser}',
+        role: 'readWrite',
+        createdAt: new Date()
+      });
+    "
+  `;
+
+    try {
+      new Promise((resolve, reject) => {
+        exec(mongoCommand, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en No Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-012'));
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+      //return conection uri
+      return `mongodb://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MONGO_PORT}/${encodeURIComponent(dbName)}?authSource=${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   /**

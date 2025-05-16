@@ -14,21 +14,43 @@ export class systemProcessor {
       !job.data.containerName ||
       !job.data.nombre ||
       !job.data.usuario ||
-      !job.data.contrasenia
+      !job.data.contrasenia ||
+      !job.data.type
     )
       throw new BadRequestException(
         `No se ha enviado el containerName, el nombre, usuario o contrasenia de la base de datos  ErrorCode-006`,
       );
-    await this.dockerfileService.createMySQLDatabaseAndUser(
-      job.data.containerName,
-      job.data.nombre,
-      job.data.usuario,
-      job.data.contrasenia,
-    );
+
+    let connection_URI = '';
+    try {
+      if (job.data.type == process.env.SQL_DB) {
+        const response =
+          await this.dockerfileService.createMySQLDatabaseAndUser(
+            job.data.containerName,
+            job.data.nombre,
+            job.data.usuario,
+            job.data.contrasenia,
+          );
+        connection_URI = response;
+      } else {
+        const response =
+          await this.dockerfileService.createMyNoSQLDatabaseAndUser(
+            job.data.containerName,
+            job.data.nombre,
+            job.data.usuario,
+            job.data.contrasenia,
+          );
+        connection_URI = response;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+
     console.log('⚙️ Procesando trabajo desde la cola system:', job.data);
     return {
       status: 'ok',
       message: 'Trabajo de deploy del sistema recibido y procesado',
+      connection_URI: connection_URI,
     };
   }
 }

@@ -74,13 +74,19 @@ export class WorkerProcessor {
           (proyect.base_de_datos && proyect.tipo_proyecto == 'M') ||
           repositorio.tipo == 'B'
         ) {
-          env_repositorio = {
-            DB_DATABASE: proyect.base_de_datos.nombre,
-            DB_PORT: db_Port,
-            DB_HOST: db_Host,
-            DB_USER: proyect.base_de_datos.usuario,
-            DB_PASSWORD: proyect.base_de_datos.contrasenia,
-          };
+          if (proyect.base_de_datos.tipo == process.env.SQL_DB) {
+            env_repositorio = {
+              DB_DATABASE: proyect.base_de_datos.nombre,
+              DB_PORT: db_Port,
+              DB_HOST: db_Host,
+              DB_USER: proyect.base_de_datos.usuario,
+              DB_PASSWORD: proyect.base_de_datos.contrasenia,
+            };
+          } else {
+            env_repositorio = {
+              DB_CONNECTION_URI: proyect.base_de_datos.url,
+            };
+          }
         }
 
         env_repositorio = {
