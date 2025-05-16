@@ -165,6 +165,8 @@ export class WorkerProcessor {
           type: repositorio.tipo,
           port: puertos,
           language: repositorio.framework,
+          repositorioId: repositorio.id,
+          log: '',
         });
 
         //Generate image if is type All
@@ -188,7 +190,6 @@ export class WorkerProcessor {
             envLinesBackend,
             envLinesFrontend,
           );
-
         console.log(
           '⚙️ Procesando trabajo desde la cola system:',
           doker_compose_file,
@@ -203,9 +204,25 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
-        responseNginx = await configureNginx.generate();
+        //responseNginx = await configureNginx.generate();
 
         //const configureNginx = await this.nginxService.generate();
+        if (dockerfiles[0].type == 'F') {
+          dockerfiles[0].log = await this.dockerfileService.getDockerLog(
+            `frontend_${dockerfiles[0].proyect_id}`,
+          );
+          dockerfiles[1].log = await this.dockerfileService.getDockerLog(
+            `backend_${dockerfiles[1].proyect_id}`,
+          );
+        } else {
+          dockerfiles[1].log = await this.dockerfileService.getDockerLog(
+            `frontend_${dockerfiles[1].proyect_id}`,
+          );
+          dockerfiles[0].log = await this.dockerfileService.getDockerLog(
+            `backend_${dockerfiles[0].proyect_id}`,
+          );
+        }
+        console.log(dockerfiles);
       } else {
         const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
           {
@@ -213,8 +230,11 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto}`,
           },
         ]);
-        responseNginx = await configureNginx.generate();
+        //responseNginx = await configureNginx.generate();
         //const configureNginx = await this.nginxService.generate();
+        dockerfiles[0].log = await this.dockerfileService.getDockerLog(
+          `Container-${dockerfiles[0].proyect_id}`,
+        );
       }
       return {
         status: 'ok',

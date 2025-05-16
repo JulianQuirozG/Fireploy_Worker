@@ -893,4 +893,23 @@ networks:
       throw new BadRequestException(error + ' ErrorCode-011');
     }
   }
+
+  async getDockerLog(containerName: string) {
+    try {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          exec(`docker logs ${containerName}`, (error, stdout, stderr) => {
+            if (error) {
+              return reject(new Error(`Error: ${error.message}`));
+            }
+            resolve(`${stdout}, ${stderr}`);
+          });
+        }, 1000);
+      });
+    } catch (error) {
+      throw new Error(
+        `Error obteniendo logs del contenedor ${containerName}: ${error.message}`,
+      );
+    }
+  }
 }
