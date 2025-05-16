@@ -205,7 +205,6 @@ export class WorkerProcessor {
         ]);
         responseNginx = await configureNginx.generate();
 
-        //const configureNginx = await this.nginxService.generate();
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,
@@ -230,7 +229,6 @@ export class WorkerProcessor {
           },
         ]);
         responseNginx = await configureNginx.generate();
-        //const configureNginx = await this.nginxService.generate();
         dockerfiles[0].log = await this.dockerfileService.getDockerLog(
           `Container-${dockerfiles[0].proyect_id}`,
         );
