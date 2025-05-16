@@ -327,6 +327,26 @@ EXPOSE ${port}
 # Comando de inicio: php artisan serve
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
 `,
+      Springboot: `
+      # Etapa 1: Construcción del proyecto con Maven y Java 17
+        FROM maven:3.9.4-eclipse-temurin-21 AS builder
+        WORKDIR /app
+        COPY . .
+        ${envLines}
+        RUN mvn clean package -DskipTests
+
+        # Etapa 2: Imagen de producción con JDK 17 ligero
+        FROM eclipse-temurin:21-jdk-alpine
+        WORKDIR /app
+        COPY --from=builder /app/target/*.jar app.jar
+        ${envLines}
+        EXPOSE ${port}
+        
+        # Variable para pasar flags de JVM si se desea
+        ENV JAVA_OPTS=""
+
+        ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
+`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
