@@ -46,7 +46,6 @@ export class WorkerProcessor {
         if (
           !repositorio.tecnologia ||
           !repositorio.url ||
-          !repositorio.version ||
           !repositorio.framework
         )
           throw new NotFoundException(
