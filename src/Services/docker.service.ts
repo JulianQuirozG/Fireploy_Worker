@@ -904,7 +904,7 @@ networks:
             }
             resolve(`${stdout}, ${stderr}`);
           });
-        }, 1000);
+        }, 5000);
       });
     } catch (error) {
       throw new Error(
