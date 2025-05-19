@@ -99,7 +99,7 @@ export class DockerfileService {
 
       ${envLines}
 
-      WORKDIR /app
+      WORKDIR /app/app${id_project}
 
       # Copiar todos los archivos desde la etapa anterior
       COPY --from=builder /app /app
