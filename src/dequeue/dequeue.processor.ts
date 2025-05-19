@@ -196,15 +196,16 @@ export class WorkerProcessor {
         const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
           {
             path: `app${proyect.id as string}`,
-            target: `${process.env.IP}:${proyect.puerto}`,
+            target: `${process.env.IP}:${proyect.puerto++}`,
           },
           {
             path: `api${proyect.id as string}`,
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
+        console.log("asdasd2",configureNginx);
         responseNginx = await configureNginx.generate();
-
+        console.log("asdasd",responseNginx);
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,
