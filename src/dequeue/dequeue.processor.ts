@@ -196,7 +196,7 @@ export class WorkerProcessor {
         const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
           {
             path: `app${proyect.id as string}`,
-            target: `${process.env.IP}:${proyect.puerto++}`,
+            target: `${process.env.IP}:${proyect.puerto}`,
           },
           {
             path: `api${proyect.id as string}`,
