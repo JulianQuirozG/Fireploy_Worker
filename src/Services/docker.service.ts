@@ -355,9 +355,9 @@ export class DockerfileService {
       COPY . /app/app${id_project}
       COPY . /app
 
-      RUN sed -i 's|<head>|<head><base href="/miproyecto/" />|' /app/index.html
-      RUN sed -i 's|<head>|<head><base href="/miproyecto/" />|' /app/app6/index.html
-      
+      RUN sed -i 's|<head>|<head><base href="/app${id_project}/" />|' /app/index.html
+      RUN sed -i 's|<head>|<head><base href="/app${id_project}/" />|' /app/app6/index.html
+
       # Instala serve
       RUN npm install -g serve
       ${envLines}
