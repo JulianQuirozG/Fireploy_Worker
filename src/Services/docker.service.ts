@@ -354,6 +354,10 @@ export class DockerfileService {
       # Copiamos el contenido de app/app1 al contenedor
       COPY . /app/app${id_project}
       COPY . /app
+
+      RUN sed -i 's|<head>|<head><base href="/miproyecto/" />|' /app/index.html
+      RUN sed -i 's|<head>|<head><base href="/miproyecto/" />|' /app/app6/index.html
+      
       # Instala serve
       RUN npm install -g serve
       ${envLines}
