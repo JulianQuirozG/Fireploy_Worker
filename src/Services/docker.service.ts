@@ -114,7 +114,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para iniciar Vite en modo desarrollo
-      CMD ["npm", "run", "preview", "--", "--port", "${port}", "--host"]
+      CMD ["npm", "run", "preview", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
       Nodejs: `# Usa una versión estable de Node.js como base
@@ -143,7 +143,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Usa un entrypoint flexible para adaptarse a cualquier framework
-      CMD ["npm", "run", "start", "--", "--port=${port}"] `,
+      CMD ["npm", "run", "start", "--", "--port=${port}", "--host", "0.0.0.0"] `,
 
       Python: `# Use Python 3.9 as the base image
       FROM python:3.9
@@ -330,7 +330,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando de inicio: php artisan serve
-      CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}" , "--host", "0.0.0.0"]
+      CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
       `,
       Springboot: `
       # Etapa 1: Construcción del proyecto con Maven y Java 17
