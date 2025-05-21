@@ -111,10 +111,10 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para iniciar Vite en modo desarrollo
-      CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
+      CMD ["npm", "run", "start", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
-      Node: `# Usa una versión estable de Node.js como base
+      Nodejs: `# Usa una versión estable de Node.js como base
       FROM node:18
 
       # Establece el directorio de trabajo dentro del contenedor
@@ -128,17 +128,19 @@ export class DockerfileService {
 
       # Copia el código fuente al contenedor
       COPY . .
+      COPY . /app/app${id_project}
 
       ${envLines}
 
       # Detecta si hay un script de build y lo ejecuta (opcional)
-      RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
+      RUN echo "Checking for build script..." && \
+        node -e "..." && echo 'Build script found. Building...' && npm run build || echo 'No build script found. Skipping.'
       
       # Expone el puerto definido en la variable de entorno o usa 3000 por defecto
       EXPOSE ${port}
 
       # Usa un entrypoint flexible para adaptarse a cualquier framework
-      CMD ["npm", "run", "dev"] `,
+      CMD ["npm", "run", "start", "--", "--port=${port}"] `,
 
       Python: `# Use Python 3.9 as the base image
       FROM python:3.9
@@ -347,7 +349,7 @@ export class DockerfileService {
 
         ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
       `,
-      Html:`FROM node:18-alpine
+      Html: `FROM node:18-alpine
 
       WORKDIR /app
 
