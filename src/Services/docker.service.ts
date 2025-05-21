@@ -353,7 +353,7 @@ export class DockerfileService {
 
       # Copiamos el contenido de app/app1 al contenedor
       COPY . /app/app${id_project}
-
+      COPY . /app
       # Instala serve
       RUN npm install -g serve
       ${envLines}
