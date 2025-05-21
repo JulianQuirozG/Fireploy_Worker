@@ -93,7 +93,8 @@ export class DockerfileService {
 
       # Instalar dependencias, incluyendo las de desarrollo
       RUN npm install
-
+      RUN npm run build
+      
       # Etapa 2: Desarrollo
       FROM node:18-alpine
 
