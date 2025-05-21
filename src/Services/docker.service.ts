@@ -330,7 +330,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando de inicio: php artisan serve
-      CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
+      CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}" , "--host"]
       `,
       Springboot: `
       # Etapa 1: Construcción del proyecto con Maven y Java 17
