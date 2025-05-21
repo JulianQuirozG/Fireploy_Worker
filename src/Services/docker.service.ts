@@ -111,7 +111,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para iniciar Vite en modo desarrollo
-      CMD ["npm", "run", "start", "--", "--port", "${port}", "--host", "0.0.0.0"]
+      CMD ["npm", "run", "preview", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
       Nodejs: `# Usa una versión estable de Node.js como base
