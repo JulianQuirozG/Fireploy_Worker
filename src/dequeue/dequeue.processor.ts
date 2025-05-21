@@ -90,7 +90,7 @@ export class WorkerProcessor {
 
         env_repositorio = {
           PORT: puertos,
-          HOST: process.env.APP_HOST,
+          FIREPLOY_HOST: process.env.APP_HOST,
           ...env_repositorio,
         };
         if (repositorio.tipo === 'B') {
@@ -160,7 +160,7 @@ export class WorkerProcessor {
         // Add dockerfiles
         dockerfiles.push({
           proyect_id: proyect.id,
-          rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
+          rute: `https://${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
           type: repositorio.tipo,
           port: puertos,
           language: repositorio.framework,
