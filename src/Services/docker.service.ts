@@ -365,7 +365,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Sirve todo desde /app
-      CMD ["serve", "-s", "/app", "-l", "${port}"]
+      CMD ["serve", "/app", "-l", "${port}"]
       `,
 
     };
