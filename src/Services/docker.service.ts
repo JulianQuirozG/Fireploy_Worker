@@ -347,12 +347,12 @@ export class DockerfileService {
 
         ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
       `,
-      html:`FROM node:18-alpine
+      Html:`FROM node:18-alpine
 
       WORKDIR /app
 
       # Copiamos el contenido de app/app1 al contenedor
-      COPY . .
+      COPY . /app/app${id_project}
 
       # Instala serve
       RUN npm install -g serve
