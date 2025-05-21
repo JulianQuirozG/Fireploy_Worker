@@ -44,7 +44,7 @@ export class DockerfileService {
 
     const templates = {
       Nextjs: `
-      FROM node:20-alpine AS builder
+      FROM node:22-alpine AS builder
 
       # Copia las variables de entorno si las necesitas
       ${envLines}
@@ -64,7 +64,7 @@ export class DockerfileService {
       RUN npm run build
 
       # Etapa 2: Producción
-      FROM node:20-alpine
+      FROM node:22-alpine
 
       # Establecer variables de entorno para producción
       ENV NODE_ENV=production
@@ -82,7 +82,7 @@ export class DockerfileService {
       `,
       React: `
       # Etapa 1: Construcción
-      FROM node:18 AS builder
+      FROM node:22 AS builder
 
       ${envLines}
 
@@ -94,9 +94,9 @@ export class DockerfileService {
       # Instalar dependencias, incluyendo las de desarrollo
       RUN npm install
       RUN npm run build
-      
+
       # Etapa 2: Desarrollo
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       ${envLines}
 
@@ -116,7 +116,7 @@ export class DockerfileService {
 
       `,
       Nodejs: `# Usa una versión estable de Node.js como base
-      FROM node:18
+      FROM node:22
 
       # Establece el directorio de trabajo dentro del contenedor
       WORKDIR /app
@@ -182,7 +182,7 @@ export class DockerfileService {
 
       Angular: `
       # Etapa 1: Construcción del entorno de desarrollo
-      FROM node:18-alpine AS builder
+      FROM node:22-alpine AS builder
 
       # Instala Angular CLI globalmente
       RUN npm install -g @angular/cli
@@ -204,7 +204,7 @@ export class DockerfileService {
       RUN npm run build -- --configuration production --base-href /app${id_project}/  --deploy-url /app${id_project}/
 
       # Etapa 2: servidor de archivos estáticos
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       WORKDIR /app
 
@@ -225,7 +225,7 @@ export class DockerfileService {
       `,
 
       Expressjs: `# Imagen base oficial de Node.js
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       # Establece variable de entorno del puerto
 
@@ -350,7 +350,7 @@ export class DockerfileService {
 
         ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
       `,
-      Html: `FROM node:18-alpine
+      Html: `FROM node:22-alpine
 
       WORKDIR /app
 
