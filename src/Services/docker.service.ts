@@ -307,6 +307,8 @@ export class DockerfileService {
       # Instala Composer desde la imagen oficial
       COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+      ${envLines}
+
       # Copia el proyecto Laravel al contenedor
       COPY . app${id_project}
 
@@ -364,6 +366,8 @@ COPY . .
 ${envLines}
 
 # Instalar dependencias
+RUN pip install --no-cache-dir fastapi uvicorn
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Exponer el puerto que quieras usar
