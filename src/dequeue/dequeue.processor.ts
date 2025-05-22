@@ -91,7 +91,7 @@ export class WorkerProcessor {
 
         env_repositorio = {
           PORT: puertos,
-          HOST: process.env.APP_HOST,
+          FIREPLOY_HOST: process.env.APP_HOST,
           ...env_repositorio,
         };
         if (repositorio.tipo === 'B') {
@@ -161,7 +161,7 @@ export class WorkerProcessor {
         // Add dockerfiles
         dockerfiles.push({
           proyect_id: proyect.id,
-          rute: `${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
+          rute: `https://${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
           type: repositorio.tipo,
           port: puertos,
           language: repositorio.framework,
@@ -204,8 +204,9 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
+        console.log("asdasd2",configureNginx);
         responseNginx = await configureNginx.generate();
-
+        console.log("asdasd",responseNginx);
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,

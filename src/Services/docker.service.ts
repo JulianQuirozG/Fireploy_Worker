@@ -44,7 +44,7 @@ export class DockerfileService {
 
     const templates = {
       Nextjs: `
-      FROM node:20-alpine AS builder
+      FROM node:22-alpine AS builder
 
       # Copia las variables de entorno si las necesitas
       ${envLines}
@@ -64,7 +64,7 @@ export class DockerfileService {
       RUN npm run build
 
       # Etapa 2: Producción
-      FROM node:20-alpine
+      FROM node:22-alpine
 
       # Establecer variables de entorno para producción
       ENV NODE_ENV=production
@@ -82,7 +82,7 @@ export class DockerfileService {
       `,
       React: `
       # Etapa 1: Construcción
-      FROM node:18 AS builder
+      FROM node:22 AS builder
 
       ${envLines}
 
@@ -93,13 +93,16 @@ export class DockerfileService {
 
       # Instalar dependencias, incluyendo las de desarrollo
       RUN npm install
+      RUN npm i --save-dev @types/node
+
+      RUN npm run build
 
       # Etapa 2: Desarrollo
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       ${envLines}
 
-      WORKDIR /app
+      WORKDIR /app/app${id_project}
 
       # Copiar todos los archivos desde la etapa anterior
       COPY --from=builder /app /app
@@ -111,11 +114,11 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para iniciar Vite en modo desarrollo
-      CMD ["npm", "run", "dev", "--", "--port", "${port}", "--host", "0.0.0.0"]
+      CMD ["npm", "run", "preview", "--", "--port", "${port}", "--host", "0.0.0.0"]
 
       `,
-      Node: `# Usa una versión estable de Node.js como base
-      FROM node:18
+      Nodejs: `# Usa una versión estable de Node.js como base
+      FROM node:22
 
       # Establece el directorio de trabajo dentro del contenedor
       WORKDIR /app
@@ -128,17 +131,19 @@ export class DockerfileService {
 
       # Copia el código fuente al contenedor
       COPY . .
+      COPY . /app/app${id_project}
 
       ${envLines}
 
       # Detecta si hay un script de build y lo ejecuta (opcional)
-      RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
+      RUN echo "Checking for build script..." && \
+        node -e "..." && echo 'Build script found. Building...' && npm run build || echo 'No build script found. Skipping.'
       
       # Expone el puerto definido en la variable de entorno o usa 3000 por defecto
       EXPOSE ${port}
 
       # Usa un entrypoint flexible para adaptarse a cualquier framework
-      CMD ["npm", "run", "dev"] `,
+      CMD ["npm", "run", "start", "--", "--port=${port}", "--host", "0.0.0.0"] `,
 
       Python: `# Use Python 3.9 as the base image
       FROM python:3.9
@@ -179,7 +184,7 @@ export class DockerfileService {
 
       Angular: `
       # Etapa 1: Construcción del entorno de desarrollo
-      FROM node:18-alpine AS builder
+      FROM node:22-alpine AS builder
 
       # Instala Angular CLI globalmente
       RUN npm install -g @angular/cli
@@ -201,7 +206,7 @@ export class DockerfileService {
       RUN npm run build -- --configuration production --base-href /app${id_project}/  --deploy-url /app${id_project}/
 
       # Etapa 2: servidor de archivos estáticos
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       WORKDIR /app
 
@@ -222,7 +227,7 @@ export class DockerfileService {
       `,
 
       Expressjs: `# Imagen base oficial de Node.js
-      FROM node:18-alpine
+      FROM node:22-alpine
 
       # Establece variable de entorno del puerto
 
@@ -247,86 +252,86 @@ export class DockerfileService {
       CMD ["npm", "start"]
       `,
       Symfony: `# Etapa 1: imagen base con PHP y extensiones necesarias
-FROM php:8.2-cli
+      FROM php:8.2-cli
 
-# Instala dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
-    libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
-    zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
-    && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
+      # Instala dependencias del sistema
+      RUN apt-get update && apt-get install -y \
+          git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+          libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
+          zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
+          && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
 
-# Instala Composer desde la imagen oficial
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+      # Instala Composer desde la imagen oficial
+      COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Establece el directorio de trabajo
-WORKDIR /app${id_project}
+      # Establece el directorio de trabajo
+      WORKDIR /app${id_project}
 
-# Copia los archivos del proyecto
-COPY . .
+      # Copia los archivos del proyecto
+      COPY . .
 
-RUN mkdir -p config && \
-echo 'controllers:' > config/routes.yaml && \
-echo "  resource: '../src/Controller/'" >> config/routes.yaml && \
-echo "  type: attribute" >> config/routes.yaml && \
-echo "  prefix: /app${id_project}" >> config/routes.yaml
+      RUN mkdir -p config && \
+      echo 'controllers:' > config/routes.yaml && \
+      echo "  resource: '../src/Controller/'" >> config/routes.yaml && \
+      echo "  type: attribute" >> config/routes.yaml && \
+      echo "  prefix: /app${id_project}" >> config/routes.yaml
 
-RUN echo "APP_ENV=dev" > .env 
+      RUN echo "APP_ENV=dev" > .env 
 
 
-# Ejecuta composer install para que funcione el autoload
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+      # Ejecuta composer install para que funcione el autoload
+      RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Instala Symfony CLI
-RUN curl -sS https://get.symfony.com/cli/installer | bash && \
-    mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+      # Instala Symfony CLI
+      RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+          mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
 
-# Expone el puerto
-EXPOSE ${port}
+      # Expone el puerto
+      EXPOSE ${port}
 
-# Comando por defecto: iniciar servidor web embebido de PHP
-CMD ["symfony", "server:start", "--no-tls", "--allow-http", "--port=${port}", "--allow-all-ip"]
+      # Comando por defecto: iniciar servidor web embebido de PHP
+      CMD ["symfony", "server:start", "--no-tls", "--allow-http", "--port=${port}", "--allow-all-ip"]
 
 
       `,
       Laravel: `# Etapa 1: imagen base con PHP y extensiones necesarias
-FROM php:8.2-cli
+      FROM php:8.2-cli
 
-# Instala dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
-    libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
-    zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
-    && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
+      # Instala dependencias del sistema
+      RUN apt-get update && apt-get install -y \
+          git unzip zip curl libicu-dev libonig-dev libxml2-dev libzip-dev libpq-dev \
+          libpng-dev libjpeg-dev libfreetype6-dev libssl-dev libcurl4-openssl-dev \
+          zlib1g-dev libxrender1 libfontconfig1 libxext6 libx11-dev \
+          && docker-php-ext-install intl pdo pdo_mysql opcache zip xml mbstring bcmath
 
-# Instala Composer desde la imagen oficial
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+      # Instala Composer desde la imagen oficial
+      COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copia el proyecto Laravel al contenedor
-COPY . app${id_project}
+      # Copia el proyecto Laravel al contenedor
+      COPY . app${id_project}
 
-# Establece directorio de trabajo
-WORKDIR app${id_project}
+      # Establece directorio de trabajo
+      WORKDIR app${id_project}
 
-# Instalar Node.js LTS y npm
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g npm
+      # Instalar Node.js LTS y npm
+      RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get install -y nodejs && \
+          npm install -g npm
 
-RUN npm install
+      RUN npm install
 
-RUN docker-php-ext-install pcntl
+      RUN docker-php-ext-install pcntl
 
-# Ejecuta composer install para que funcione el autoload
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+      # Ejecuta composer install para que funcione el autoload
+      RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 
-# Expone el puerto donde Laravel servirá (por default 8000)
-EXPOSE ${port}
+      # Expone el puerto donde Laravel servirá (por default 8000)
+      EXPOSE ${port}
 
-# Comando de inicio: php artisan serve
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
-`,
+      # Comando de inicio: php artisan serve
+      CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
+      `,
       Springboot: `
       # Etapa 1: Construcción del proyecto con Maven y Java 17
         FROM maven:3.9.4-eclipse-temurin-21 AS builder
@@ -366,6 +371,27 @@ EXPOSE ${port}
 
 # Comando para arrancar el servidor con prefijo
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
+
+      Html: `FROM node:22-alpine
+
+      WORKDIR /app
+
+      # Copiamos el contenido de app/app1 al contenedor
+      COPY . /app/app${id_project}
+      COPY . /app
+
+      RUN find /app -name "*.html" -exec sed -i 's|<head>|<head><base href="/app${id_project}/" />|' {} +
+      RUN find /app/app${id_project} -name "*.html" -exec sed -i 's|<head>|<head><base href="/app${id_project}/" />|' {} +
+
+      # Instala serve
+      RUN npm install -g serve
+      ${envLines}
+      # Expone el puerto donde se servirá el contenido
+      EXPOSE ${port}
+
+      # Sirve todo desde /app
+      CMD ["serve", "/app", "-l", "${port}"]
+      `,
     };
 
     // Return the corresponding Dockerfile template for the given technology
