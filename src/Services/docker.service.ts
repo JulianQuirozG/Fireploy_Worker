@@ -347,6 +347,25 @@ CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=${port}"]
 
         ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
 `,
+      Fastapi: `
+FROM python:3.10-slim
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar los archivos del proyecto
+COPY . .
+
+${envLines}
+
+# Instalar dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exponer el puerto que quieras usar
+EXPOSE ${port}
+
+# Comando para arrancar el servidor con prefijo
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
