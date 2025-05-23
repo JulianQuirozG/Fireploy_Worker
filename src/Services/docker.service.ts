@@ -360,10 +360,12 @@ FROM python:3.10-slim
 # Establecer el directorio de trabajo
 WORKDIR /app
 
+RUN echo ${envLinesAngular} > .env
+
 # Copiar los archivos del proyecto
 COPY . .
 
-${envLines}
+
 
 # Instalar dependencias
 RUN pip install --no-cache-dir fastapi uvicorn
@@ -714,9 +716,7 @@ VITE_APP_NAME="Laravel"
       Number(process.env.POSTGRES_PORT) || 3311,
       process.env.POSTGRES_VOLUME || 'postgres_data',
       networkName,
-      [
-        `POSTGRES_PASSWORD=${process.env.POSTGRES_INITDB_ROOT_PASSWORD}`,
-      ],
+      [`POSTGRES_PASSWORD=${process.env.POSTGRES_INITDB_ROOT_PASSWORD}`],
     );
   }
 
@@ -810,7 +810,7 @@ VITE_APP_NAME="Laravel"
     dbUser: string,
     dbPassword: string,
   ): Promise<string> {
-    const postgresCommand =  `
+    const postgresCommand = `
 docker exec ${containerName} bash -c '
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname='\\''${dbName}'\\''" | grep -q 1 || \
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "CREATE DATABASE \\"${dbName}\\"";
@@ -827,7 +827,7 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\"${dbUser}\\"";
 '
 `;
-console.log(postgresCommand);
+    console.log(postgresCommand);
 
     try {
       await new Promise((resolve, reject) => {
