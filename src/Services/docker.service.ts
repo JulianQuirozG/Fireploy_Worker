@@ -810,7 +810,7 @@ VITE_APP_NAME="Laravel"
     dbUser: string,
     dbPassword: string,
   ): Promise<string> {
-const command = `
+const postgresCommand = `
 docker exec databasepostgres bash -c "PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p 3311 <<EOF
 DO \$\$
 BEGIN
