@@ -32,9 +32,27 @@ export class systemProcessor {
             job.data.contrasenia,
           );
         connection_URI = response;
-      } else {
+      } else if(job.data.type == process.env.NO_SQL_DB) {
         const response =
           await this.dockerfileService.createMyNoSQLDatabaseAndUser(
+            job.data.containerName,
+            job.data.nombre,
+            job.data.usuario,
+            job.data.contrasenia,
+          );
+        connection_URI = response;
+      } else if(job.data.type == process.env.POST_DB) {
+        const response =
+          await this.dockerfileService.createPostgresDatabaseAndUser(
+            job.data.containerName,
+            job.data.nombre,
+            job.data.usuario,
+            job.data.contrasenia,
+          );
+        connection_URI = response;
+      } else if(job.data.type == process.env.MARIA_DB) {
+        const response =
+          await this.dockerfileService.createPostgresDatabaseAndUser(
             job.data.containerName,
             job.data.nombre,
             job.data.usuario,
