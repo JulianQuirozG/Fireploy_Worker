@@ -810,18 +810,21 @@ VITE_APP_NAME="Laravel"
     dbUser: string,
     dbPassword: string,
   ): Promise<string> {
-    const postgresCommand = `
-docker exec ${containerName} bash -c 'PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname='${dbName}'" | grep -q 1 || PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "CREATE DATABASE \\"${dbName}\\"";
+    const postgresCommand =  `
+docker exec ${containerName} bash -c '
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname='\\''${dbName}'\\''" | grep -q 1 || \
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "CREATE DATABASE \\"${dbName}\\"";
 
-PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_roles WHERE rolname='${dbUser}'" | grep -q 1 || PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "CREATE USER \\"${dbUser}\\" WITH PASSWORD '${dbPassword}'";
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_roles WHERE rolname='\\''${dbUser}'\\''" | grep -q 1 || \
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "CREATE USER \\"${dbUser}\\" WITH PASSWORD '\\''${dbPassword}'\\''";
 
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "GRANT ALL PRIVILEGES ON DATABASE \\"${dbName}\\" TO \\"${dbUser}\\"";
 
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "GRANT ALL ON SCHEMA public TO \\"${dbUser}\\"";
 
-PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"${dbUser}\"";
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \\"${dbUser}\\"";
 
-PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \"${dbUser}\"";
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\"${dbUser}\\"";
 '
 `;
 console.log(postgresCommand);
