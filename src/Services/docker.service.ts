@@ -814,6 +814,7 @@ VITE_APP_NAME="Laravel"
 docker exec ${containerName} bash -c "PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} -tc \"SELECT 1 FROM pg_database WHERE datname='${dbName}'\" | grep -q 1 || PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} -c \"CREATE DATABASE ${dbName}\"; PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} -c \"DO \\\$\\\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${dbUser}') THEN EXECUTE format('CREATE USER %I WITH PASSWORD %L;', '${dbUser}', '${dbPassword}'); END IF; END \\\$\\\$;\"; PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} -c \"GRANT ALL PRIVILEGES ON DATABASE ${dbUser} TO ${dbName}\""
 
 `;
+console.log(postgresCommand);
 
     try {
       await new Promise((resolve, reject) => {
