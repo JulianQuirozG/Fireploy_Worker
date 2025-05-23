@@ -658,7 +658,7 @@ VITE_APP_NAME="Laravel"
         } else if (containerName == process.env.POSTGRES_CONTAINER_NAME) {
           volume = `${volume}:/var/lib/postgresql/data`;
         }
-        
+
         const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}  ${envString} ${image} --port=${port}`;
 
         console.log(command);
@@ -799,6 +799,84 @@ VITE_APP_NAME="Laravel"
       });
       //return conection uri
       return `mongodb://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MONGO_PORT}/${encodeURIComponent(dbName)}?authSource=${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async createPostgresDatabaseAndUser(
+    containerName: string,
+    dbName: string,
+    dbUser: string,
+    dbPassword: string,
+  ): Promise<string> {
+    const postgresCommand = `
+    docker exec ${containerName} psql -U postgres -p ${process.env.POSTGRES_PORT} -c "
+      DO \$\$
+      BEGIN
+        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${dbName}') THEN
+          EXECUTE format('CREATE DATABASE \"%I\";', '${dbName}');
+        END IF;
+      END
+      \$\$;
+
+      DO \$\$
+      BEGIN
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${dbUser}') THEN
+          EXECUTE format('CREATE USER \"%I\" WITH PASSWORD %L;', '${dbUser}', '${dbPassword}');
+        END IF;
+      END
+      \$\$;
+
+      GRANT ALL PRIVILEGES ON DATABASE \"${dbName}\" TO \"${dbUser}\";
+    "
+  `;
+
+    try {
+      new Promise((resolve, reject) => {
+        exec(postgresCommand, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en Postgres:`, stderr);
+            reject(new Error(error + ' ErrorCode-013'));
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+      //return conection uri
+      return `postgresql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.POSTGRES_PORT}/${encodeURIComponent(dbName)}`;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async createMariaDBDatabaseAndUser(
+    containerName: string,
+    dbName: string,
+    dbUser: string,
+    dbPassword: string,
+  ): Promise<string> {
+    const command = `
+  docker exec ${containerName} mysql -u root -p'${process.env.MARIADB_INITDB_ROOT_PASSWORD}' -e "
+    CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
+    CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
+    GRANT ALL PRIVILEGES ON \\\`${dbName}\\\`.* TO '${dbUser}'@'%';
+    FLUSH PRIVILEGES;"
+`;
+
+    try {
+      new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al crear DB y usuario en Sql:`, stderr);
+            reject(new Error(error + ' ErrorCode-014'));
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+      //return conection uri
+      return `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${process.env.IP_HOST}:${process.env.MYSQL_PORT}/${encodeURIComponent(dbName)}`;
     } catch (error) {
       throw new Error(error);
     }
