@@ -12,7 +12,7 @@ export class WorkerProcessor {
     private dockerfileService: DockerfileService,
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
-  ) {}
+  ) { }
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
     //Create repository
@@ -33,9 +33,15 @@ export class WorkerProcessor {
     //Assign data base variables
     let db_Port = process.env.MYSQL_PORT;
     let db_Host = process.env.MYSQL_CONTAINER_NAME;
-    if (proyect.base_de_datos && proyect.base_de_datos.tipo != 'S') {
+    if (proyect.base_de_datos && proyect.base_de_datos.tipo === 'M') {
       db_Port = process.env.MONGO_PORT;
       db_Host = process.env.MONGO_CONTAINER_NAME;
+    } else if (proyect.base_de_datos && proyect.base_de_datos.tipo === 'P') {
+      db_Port = process.env.POSTGRES_PORT;
+      db_Host = process.env.POSTGRES_CONTAINER_NAME;
+    } else if (proyect.base_de_datos && proyect.base_de_datos.tipo === 'M') {
+      db_Port = process.env.MARIADB_PORT;
+      db_Host = process.env.MARIADB_CONTAINER_NAME;
     }
 
     let envLinesBackend, envLinesFrontend;
@@ -211,9 +217,9 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
-        console.log("asdasd2",configureNginx);
+        console.log("asdasd2", configureNginx);
         responseNginx = await configureNginx.generate();
-        console.log("asdasd",responseNginx);
+        console.log("asdasd", responseNginx);
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,
