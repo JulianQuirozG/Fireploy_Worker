@@ -307,6 +307,8 @@ export class DockerfileService {
       # Instala Composer desde la imagen oficial
       COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+      ${envLines}
+
       # Copia el proyecto Laravel al contenedor
       COPY . app${id_project}
 
@@ -351,7 +353,29 @@ export class DockerfileService {
         ENV JAVA_OPTS=""
 
         ENTRYPOINT exec java $JAVA_OPTS -jar app.jar
-      `,
+`,
+      Fastapi: `
+FROM python:3.10-slim
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar los archivos del proyecto
+COPY . .
+
+${envLines}
+
+# Instalar dependencias
+RUN pip install --no-cache-dir fastapi uvicorn
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exponer el puerto que quieras usar
+EXPOSE ${port}
+
+# Comando para arrancar el servidor con prefijo
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
+
       Html: `FROM node:22-alpine
 
       WORKDIR /app
@@ -372,7 +396,6 @@ export class DockerfileService {
       # Sirve todo desde /app
       CMD ["serve", "/app", "-l", "${port}"]
       `,
-
     };
 
     // Return the corresponding Dockerfile template for the given technology
