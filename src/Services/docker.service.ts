@@ -812,18 +812,12 @@ VITE_APP_NAME="Laravel"
   ): Promise<string> {
     const postgresCommand = `
 docker exec databasepostgres bash -c "
-  PGPASSWORD='4769' psql -U postgres -p 3311 -tc \\
-  \\"SELECT 1 FROM pg_database WHERE datname = 'Dinastia_3'\\" | grep -q 1 || \\
-  PGPASSWORD='4769' psql -U postgres -p 3311 -c \\
-  \\"CREATE DATABASE Dinastia_3\\";
+  PGPASSWORD='4769' psql -U postgres -p 3311 -tc \"SELECT 1 FROM pg_database WHERE datname='Dinastia_3'\" | grep -q 1 || \
+  PGPASSWORD='4769' psql -U postgres -p 3311 -c \"CREATE DATABASE Dinastia_3\";
+
+  PGPASSWORD='4769' psql -U postgres -p 3311 -c \"DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'Dinastia_3') THEN EXECUTE format('CREATE USER %I WITH PASSWORD %L;', 'Dinastia_3', 'Secreta123$'); END IF; END \$\$;\";
   
-  PGPASSWORD='4769' psql -U postgres -p 3311 -c \\
-  \\"DO \\\\$ BEGIN
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'Dinastia_3') THEN
-        EXECUTE format('CREATE USER %I WITH PASSWORD %L;', 'Dinastia_3', 'Secreta123$');
-      END IF;
-    END \\\\$;
-    GRANT ALL PRIVILEGES ON DATABASE \\\"Dinastia_3\\\" TO \\\"Dinastia_3\\\";\\" 
+  PGPASSWORD='4769' psql -U postgres -p 3311 -c \"GRANT ALL PRIVILEGES ON DATABASE \\\"Dinastia_3\\\" TO \\\"Dinastia_3\\\"\";
 "
 `;
 
