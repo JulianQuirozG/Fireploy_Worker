@@ -85,6 +85,11 @@ export class WorkerProcessor {
           } else {
             env_repositorio = {
               DB_CONNECTION_URI: proyect.base_de_datos.url,
+              DB_DATABASE: proyect.base_de_datos.nombre,
+              DB_PORT: db_Port,
+              DB_HOST: db_Host,
+              DB_USER: proyect.base_de_datos.usuario,
+              DB_PASSWORD: proyect.base_de_datos.contrasenia,
             };
           }
         }
