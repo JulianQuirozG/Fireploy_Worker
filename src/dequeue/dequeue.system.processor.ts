@@ -52,7 +52,7 @@ export class systemProcessor {
         connection_URI = response;
       } else if(job.data.type == process.env.MARIA_DB) {
         const response =
-          await this.dockerfileService.createPostgresDatabaseAndUser(
+          await this.dockerfileService.createMariaDBDatabaseAndUser(
             job.data.containerName,
             job.data.nombre,
             job.data.usuario,
