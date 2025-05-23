@@ -651,9 +651,14 @@ VITE_APP_NAME="Laravel"
 
         if (containerName == process.env.MYSQL_CONTAINER_NAME) {
           volume = `${volume}:/var/lib/mysql`;
-        } else {
+        } else if (containerName == process.env.MONGO_CONTAINER_NAME) {
           volume = `${volume}:/data/db`;
+        } else if (containerName == process.env.MARIADB_CONTAINER_NAME) {
+          volume = `${volume}:/backup`;
+        } else if (containerName == process.env.POSTGRES_CONTAINER_NAME) {
+          volume = `${volume}:/var/lib/postgresql/data`;
         }
+        
         const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}  ${envString} ${image} --port=${port}`;
 
         console.log(command);
@@ -687,6 +692,30 @@ VITE_APP_NAME="Laravel"
       [
         `MONGO_INITDB_ROOT_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
         `MONGO_INITDB_ROOT_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+      ],
+    );
+
+    await this.checkAndCreateContainer(
+      process.env.MARIADB_CONTAINER_NAME || 'mariadb_container',
+      'mariadb:latest',
+      Number(process.env.MARIADB_PORT) || 3310,
+      process.env.MARIADB_VOLUME || 'mariadb_data',
+      networkName,
+      [
+        `MARIADB_USER=${process.env.MARIADB_INITDB_USER_USERNAME}`,
+        `MARIADB_PASSWORD=${process.env.MARIADB_INITDB_USER_PASSWORD}`,
+        `MARIADB_ROOT_PASSWORD=${process.env.MARIADB_INITDB_ROOT_PASSWORD}`,
+      ],
+    );
+
+    await this.checkAndCreateContainer(
+      process.env.POSTGRES_CONTAINER_NAME || 'postgres_container',
+      'postgres:latest',
+      Number(process.env.POSTGRES_PORT) || 3311,
+      process.env.POSTGRES_VOLUME || 'postgres_data',
+      networkName,
+      [
+        `POSTGRES_PASSWORD=${process.env.POSTGRES_INITDB_ROOT_PASSWORD}`,
       ],
     );
   }
