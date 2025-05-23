@@ -810,8 +810,8 @@ VITE_APP_NAME="Laravel"
     dbUser: string,
     dbPassword: string,
   ): Promise<string> {
-    const postgresCommand = `
-docker exec ${containerName} bash -c "PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} <<EOF
+const command = `
+docker exec databasepostgres bash -c "PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p 3311 <<EOF
 DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${dbName}') THEN
@@ -828,7 +828,7 @@ BEGIN
 END
 \$\$;
 
-GRANT ALL PRIVILEGES ON DATABASE \"${dbName}\" TO \"${dbUser}\";
+GRANT ALL PRIVILEGES ON DATABASE \\"${dbName}\\" TO \\"${dbUser}\\";
 EOF"
 `;
 
