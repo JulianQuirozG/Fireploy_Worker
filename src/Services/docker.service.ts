@@ -669,6 +669,56 @@ VITE_APP_NAME="Laravel"
     }
   }
 
+   async checkAndCreateContainerDiferentPort(
+    containerName: string,
+    image: string,
+    port: number,
+    port2: number,
+    volume: string,
+    network: string,
+    envVars?: string[],
+  ) {
+    try {
+      // Verificar si el contenedor está corriendo
+      await this.executeCommand(
+        `docker ps --format "{{.Names}}" | grep -w ${containerName}`,
+      );
+      this.logger.log(`✅ El contenedor ${containerName} ya está corriendo.`);
+    } catch {
+      try {
+        // Verificar si el contenedor existe pero está detenido
+        await this.executeCommand(
+          `docker ps -a --format "{{.Names}}" | grep -w ${containerName}`,
+        );
+        this.logger.log(
+          `⚡ El contenedor ${containerName} existe pero está detenido. Iniciándolo...`,
+        );
+        await this.executeCommand(`docker start ${containerName}`);
+      } catch {
+        // El contenedor no existe, crearlo y ejecutarlo
+        this.logger.log(`🚀 Creando contenedor ${containerName}...`);
+        const envString = envVars
+          ? envVars.map((env) => `-e ${env}`).join(' ')
+          : '';
+
+        if (containerName == process.env.MYSQL_CONTAINER_NAME) {
+          volume = `${volume}:/var/lib/mysql`;
+        } else if (containerName == process.env.MONGO_CONTAINER_NAME) {
+          volume = `${volume}:/data/db`;
+        } else if (containerName == process.env.MARIADB_CONTAINER_NAME) {
+          volume = `${volume}:/backup`;
+        } else if (containerName == process.env.POSTGRES_CONTAINER_NAME) {
+          volume = `${volume}:/var/lib/postgresql/data`;
+        }
+
+        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port2} -v ${volume}  ${envString} ${image}`;
+
+        console.log(command);
+        await this.executeCommand(command);
+      }
+    }
+  }
+
   /**
    * Sets up the required database containers (MySQL and MongoDB).
    *
@@ -718,6 +768,29 @@ VITE_APP_NAME="Laravel"
       networkName,
       [`POSTGRES_PASSWORD=${process.env.POSTGRES_INITDB_ROOT_PASSWORD}`],
     );
+
+    await this.checkAndCreateContainerDiferentPort( 
+      process.env.PGADMIN_CONTAINER_NAME || 'pgadmin_container',
+      'dpage/pgadmin4:latest',
+      Number(process.env.PGADMIN_PORT) || 3315,
+      Number(process.env.PGADMIN_PORT) || 80,
+      process.env.PGADMIN_VOLUME || 'servers.json',
+      networkName,
+      [`PGADMIN_DEFAULT_EMAIL=admin@admin.com`,
+        `PGADMIN_DEFAULT_PASSWORD=admin123`],
+    )
+
+    await this.checkAndCreateContainerDiferentPort( 
+      process.env.PHPADMIN_CONTAINER_NAME || 'phpmyadmin_container',
+      'phpmyadmin/phpmyadmin:latest',
+      Number(process.env.PHPADMIN_PORT) || 3316,
+      Number(process.env.PHPADMIN_PORT) || 80,
+      process.env.PHPADMIN_VOLUME || 'servers.json',
+      networkName,
+      [`PMA_HOST=${process.env.MYSQL_CONTAINER_NAME}`,
+        `PMA_PORT=${process.env.MYSQL_PORT}`],
+    )
+
   }
 
   /**
