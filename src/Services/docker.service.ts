@@ -811,20 +811,28 @@ VITE_APP_NAME="Laravel"
     dbPassword: string,
   ): Promise<string> {
     const postgresCommand = `
-    docker exec ${containerName} bash -c "PGPASSWORD='${process.env.POSTGRES_INITDB_ROOT_PASSWORD}' psql -U postgres -p ${process.env.POSTGRES_PORT} -c \\"\
-    DO \\\$\$ \
-    BEGIN \
-      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${dbName}') THEN \
-        EXECUTE format('CREATE DATABASE \\"%I\\";', '${dbName}'); \
-      END IF; \
-    END \\\$\$; \
-    DO \\\$\$ \
-    BEGIN \
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${dbUser}') THEN \
-        EXECUTE format('CREATE USER \\"%I\\" WITH PASSWORD %L;', '${dbUser}', '${dbPassword}'); \
-      END IF; \
-    END \\\$\$; \
-    GRANT ALL PRIVILEGES ON DATABASE \\"${dbName}\\" TO \\"${dbUser}\\";"`;
+docker exec ${containerName} bash -c '
+PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} <<EOF
+DO \\\$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${dbName}') THEN
+    EXECUTE format('CREATE DATABASE "%I";', '${dbName}');
+  END IF;
+END
+\\\$\$;
+
+DO \\\$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${dbUser}') THEN
+    EXECUTE format('CREATE USER "%I" WITH PASSWORD %L;', '${dbUser}', '${dbPassword}');
+  END IF;
+END
+\\\$\$;
+
+GRANT ALL PRIVILEGES ON DATABASE "${dbName}" TO "${dbUser}";
+EOF
+'
+`;
 
     try {
       await new Promise((resolve, reject) => {
