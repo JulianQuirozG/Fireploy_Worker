@@ -475,9 +475,10 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
     let envFile = this.getEnvFile(language, id_project, port);
-
+    if(envFile)
     envFile =  envFile + customEnv; 
     
+    if(envFile)
     await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
     // Retrieve the corresponding Dockerfile template
