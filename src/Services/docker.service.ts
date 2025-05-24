@@ -583,6 +583,8 @@ VITE_APP_NAME="Laravel"
       const imageName = `app-${Name}`;
       const containerName = `Container-${Name}`;
 
+      await this.executeCommand(`docker rm -f frontend_${Name}`);
+      await this.executeCommand(`docker rm -f backend_${Name}`);
       await this.executeCommand(`docker rm -f ${containerName}`);
 
       const buildCmd = `docker build -t ${imageName} "${projectPath}"`;
@@ -591,13 +593,18 @@ VITE_APP_NAME="Laravel"
       runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
 
       console.log(runCmd);
-      await this.executeCommand(buildCmd);
+      const { stdout: buildOut, stderr: buildErr } = await this.executeCommandWhitReturn(buildCmd);
       await this.executeCommand(runCmd);
 
-      return `Contenedor ${containerName} corriendo en el puerto ${port}`;
+      return `Contenedor ${containerName} corriendo en el puerto ${port}\n\n` + `--- LOGS DE BUILD ---\n${buildOut}${buildErr}\n`;
     } catch (error) {
+      const stdout = error.stdout || '';
+      const stderr = error.stderr || '';
+      const message = error.message || 'Error desconocido';
       throw new Error(
-        `Error al ejecutar Docker: ${error.message}  ErrorCode-003`,
+        `ErrorCode-003: Error al ejecutar Docker ${message}\n` +
+        `--- STDOUT ---\n${stdout}\n` +
+        `--- STDERR ---\n${stderr}\n`,
       );
     }
   }
@@ -618,6 +625,27 @@ VITE_APP_NAME="Laravel"
         } else {
           console.log(`Ejecutado: ${command}`, stdout);
           resolve();
+        }
+      });
+    });
+  }
+
+  /**
+ * Executes a shell command asynchronously using the Node.js `exec` function.
+ *
+ * @param command - The shell command to execute.
+ * @returns A Promise that resolves when the command executes successfully,
+ *          or rejects with the error if it fails.
+ */
+  private executeCommandWhitReturn(command: string): Promise<{ stdout: string; stderr: string }> {
+    return new Promise((resolve, reject) => {
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error ejecutando: ${command}`, stderr);
+          reject({ error, stdout, stderr });
+        } else {
+          console.log(`Ejecutado: ${command}`, stdout);
+          resolve({ stdout, stderr });
         }
       });
     });
@@ -1049,8 +1077,9 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
     );
-    await this.executeCommand(`docker rm -f frontend_${id}`);
-    await this.executeCommand(`docker rm -f backend_${id}`);
+    await this.executeCommand(`docker rm -f frontend_${id}`).catch(() => { });;
+    await this.executeCommand(`docker rm -f backend_${id}`).catch(() => { });;
+    await this.executeCommand(`docker rm -f Container-${id}`).catch(() => { });;
 
     const composeContent = `
 services:
@@ -1094,16 +1123,27 @@ networks:
     }
 
     try {
-      await this.executeCommand(
+      const { stdout: buildOut, stderr: buildErr } = await this.executeCommandWhitReturn(
         `docker compose -f ${composePath} build --no-cache`,
       );
-      await this.executeCommand(`docker compose -f ${composePath} up -d`);
+      const { stdout: upOut, stderr: upErr } = await this.executeCommandWhitReturn(`docker compose -f ${composePath} up -d`);
+
+      return (
+        `Docker-compose creado y corriendo.\n` +
+        `--- LOGS DE BUILD ---\n${buildOut}${buildErr}\n` +
+        `--- LOGS DE UP ---\n${upOut}${upErr}\n`
+      );
+
     } catch (error) {
-      console.log(
-        'Error ejecutando el docker compose: ' + error + ' ErrorCode-004',
+      const message = error.message || 'Error desconocido';
+      const stdout = error.stdout || '';
+      const stderr = error.stderr || '';
+      throw new Error(
+        `ErrorCode-004: Error ejecutando docker compose: ${message}\n` +
+        `--- STDOUT ---\n${stdout}\n` +
+        `--- STDERR ---\n${stderr}\n`,
       );
     }
-    return composePath;
   }
 
   /**
@@ -1168,11 +1208,11 @@ networks:
         setTimeout(() => {
           exec(`docker logs ${containerName}`, (error, stdout, stderr) => {
             if (error) {
-              return reject(new Error(`Error: ${error.message}`));
+              return reject(new Error(`Error: --- Logs del contenedor ${containerName} ---\n  ${error.message}`));
             }
-            resolve(`${stdout}, ${stderr}`);
+            resolve(`--- Logs del contenedor ${containerName} ---\n${stdout}\n${stderr}`);
           });
-        }, 5000);
+        }, 10000);
       });
     } catch (error) {
       throw new Error(

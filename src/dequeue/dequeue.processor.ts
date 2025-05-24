@@ -44,7 +44,7 @@ export class WorkerProcessor {
       db_Host = process.env.MARIADB_CONTAINER_NAME;
     }
 
-    let envLinesBackend, envLinesFrontend;
+    let envLinesBackend, envLinesFrontend, logFront, logBackend;
 
     try {
       //Prepare repositorios
@@ -153,7 +153,7 @@ export class WorkerProcessor {
           };
         }
         */
-        
+
         if (repositorio.tipo === 'B') {
           envLinesBackend = {
             ...env_repositorio,
@@ -187,7 +187,7 @@ export class WorkerProcessor {
 
         //Generate image if is type All
         if (proyect.tipo_proyecto == 'M') {
-          await this.dockerfileService.buildAndRunContainer(
+          logFront = await this.dockerfileService.buildAndRunContainer(
             proyect.id as unknown as string,
             rute,
             repositorio.framework,
@@ -200,7 +200,7 @@ export class WorkerProcessor {
       let responseNginx: any;
       if (repositorios.length > 1) {
         const doker_compose_file =
-          await this.dockerfileService.createDockerCompose(
+          logBackend = await this.dockerfileService.createDockerCompose(
             proyect.id,
             proyect.puerto,
             envLinesBackend,
@@ -220,20 +220,20 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
-        console.log("asdasd2", configureNginx);
+        //console.log("asdasd2", configureNginx);
         responseNginx = await configureNginx.generate();
-        console.log("asdasd", responseNginx);
+        //console.log("asdasd", responseNginx);
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,
           );
           dockerfiles[1].log = await this.dockerfileService.getDockerLog(
             `backend_${dockerfiles[1].proyect_id}`,
-          );
+          ) + logBackend;
         } else {
           dockerfiles[1].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[1].proyect_id}`,
-          );
+          ) + logBackend;
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `backend_${dockerfiles[0].proyect_id}`,
           );
@@ -249,7 +249,7 @@ export class WorkerProcessor {
         responseNginx = await configureNginx.generate();
         dockerfiles[0].log = await this.dockerfileService.getDockerLog(
           `Container-${dockerfiles[0].proyect_id}`,
-        );
+        ) + logFront;
       }
       return {
         status: 'ok',
