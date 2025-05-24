@@ -36,7 +36,7 @@ export class DockerfileService {
     id_project: string,
   ): string {
     const envLines = Object.entries(env[0])
-      .map(([key, value]) => `ENV ${key}="${value}"`)
+      .map(([key, value]) => `${key}="${value}"`)
       .join('\n');
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
@@ -47,7 +47,7 @@ export class DockerfileService {
       FROM node:22-alpine AS builder
 
       # Copia las variables de entorno si las necesitas
-      RUN echo ${envLinesAngular} > .env
+      RUN echo ${envLines} > .env
 
       WORKDIR /app
 
@@ -84,7 +84,7 @@ export class DockerfileService {
       # Etapa 1: Construcción
       FROM node:22 AS builder
 
-      RUN echo ${envLinesAngular} > .env
+      RUN echo ${envLines} > .env
 
       WORKDIR /app
 
@@ -95,7 +95,7 @@ export class DockerfileService {
       RUN npm install
       RUN npm i --save-dev @types/node
 
-      RUN echo ${envLinesAngular} > .env
+      RUN echo ${envLines} > .env
       RUN npm run build
 
       # Etapa 2: Desarrollo
@@ -128,7 +128,7 @@ export class DockerfileService {
       # Instala dependencias sin generar archivos innecesarios
       RUN npm install 
 
-       RUN echo ${envLinesAngular} > .env
+       RUN echo ${envLines} > .env
 
       # Copia el código fuente al contenedor
       COPY . .
@@ -156,7 +156,7 @@ export class DockerfileService {
       # Install dependencies
       RUN pip install -r requirements.txt
       
-       RUN echo ${envLinesAngular} > .env
+       RUN echo ${envLines} > .env
 
 
       # Copy the entire application source code
@@ -174,7 +174,7 @@ export class DockerfileService {
       # Copy application files to the Apache server directory
       COPY . /var/www/html/
       
-       RUN echo ${envLinesAngular} > .env
+       RUN echo ${envLines} > .env
 
       # Expose the application port
       EXPOSE ${port}
@@ -231,7 +231,7 @@ export class DockerfileService {
 
       # Establece variable de entorno del puerto
 
-       RUN echo ${envLinesAngular} > .env
+       RUN echo ${envLines} > .env
 
 
       # Establece el directorio de trabajo
@@ -268,7 +268,7 @@ export class DockerfileService {
       # Establece el directorio de trabajo
       WORKDIR /app${id_project}
 
-       RUN echo ${envLinesAngular} > .env
+       RUN echo ${envLines} > .env
 
       # Copia los archivos del proyecto
       COPY . .
@@ -310,7 +310,7 @@ export class DockerfileService {
       # Instala Composer desde la imagen oficial
       COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-      RUN echo ${envLinesAngular} > .env
+      RUN echo ${envLines} > .env
 
       # Copia el proyecto Laravel al contenedor
       COPY . app${id_project}
@@ -341,7 +341,7 @@ export class DockerfileService {
       # Etapa 1: Construcción del proyecto con Maven y Java 17
         FROM maven:3.9.4-eclipse-temurin-21 AS builder
         WORKDIR /app
-         RUN echo ${envLinesAngular} > .env
+         RUN echo ${envLines} > .env
 
         COPY . .
        
@@ -396,7 +396,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 
       # Instala serve
       RUN npm install -g serve
-     RUN echo ${envLinesAngular} > .env
+     RUN echo ${envLines} > .env
 
       # Expone el puerto donde se servirá el contenido
       EXPOSE ${port}
