@@ -475,11 +475,13 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
     let envFile = this.getEnvFile(language, id_project, port);
-    if(envFile)
-    envFile =  envFile + customEnv; 
-    
-    if(envFile)
-    await fs.writeFileSync(`${projectPath}/.env`, envFile);
+    if (envFile)
+      envFile = envFile + customEnv;
+    else
+      envFile = customEnv;
+
+    if (envFile)
+      await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
@@ -817,7 +819,7 @@ VITE_APP_NAME="Laravel"
       `ME_CONFIG_BASICAUTH_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
       `ME_CONFIG_MONGODB_SERVER=${process.env.MONGO_CONTAINER_NAME}`,
       `ME_CONFIG_MONGODB_PORT=${process.env.MONGO_PORT}`,
-      `ME_CONFIG_MONGODB_URL=mongodb://${process.env.MONGO_CONTAINER_NAME}:${process.env.MONGO_PORT}`],  
+      `ME_CONFIG_MONGODB_URL=mongodb://${process.env.MONGO_CONTAINER_NAME}:${process.env.MONGO_PORT}`],
     )
 
     await this.checkAndCreateContainerDiferentPort(
