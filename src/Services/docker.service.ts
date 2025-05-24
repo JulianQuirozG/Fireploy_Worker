@@ -669,7 +669,7 @@ VITE_APP_NAME="Laravel"
     }
   }
 
-   async checkAndCreateContainerDiferentPort(
+  async checkAndCreateContainerDiferentPort(
     containerName: string,
     image: string,
     port: number,
@@ -702,16 +702,18 @@ VITE_APP_NAME="Laravel"
           : '';
 
         if (containerName == process.env.MYSQL_CONTAINER_NAME) {
-          volume = `${volume}:/var/lib/mysql`;
+          volume = `-v ${volume}:/var/lib/mysql`;
         } else if (containerName == process.env.MONGO_CONTAINER_NAME) {
-          volume = `${volume}:/data/db`;
+          volume = `-v ${volume}:/data/db`;
         } else if (containerName == process.env.MARIADB_CONTAINER_NAME) {
-          volume = `${volume}:/backup`;
+          volume = `-v ${volume}:/backup`;
         } else if (containerName == process.env.POSTGRES_CONTAINER_NAME) {
-          volume = `${volume}:/var/lib/postgresql/data`;
+          volume = `-v ${volume}:/var/lib/postgresql/data`;
+        } else {
+          volume = ``;
         }
 
-        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port2} -v ${volume}  ${envString} ${image}`;
+        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port2} ${volume}${envString} ${image}`;
 
         console.log(command);
         await this.executeCommand(command);
@@ -738,7 +740,7 @@ VITE_APP_NAME="Laravel"
     await this.checkAndCreateContainer(
       process.env.MONGO_CONTAINER_NAME || 'mongo_container',
       'mongo:latest',
-      Number(process.env.MONGO_PORT) || 3309,
+      Number(process.env.MONGO_PORT) || 27018,
       process.env.MONGO_VOLUME || 'mongo_data',
       networkName,
       [
@@ -769,26 +771,53 @@ VITE_APP_NAME="Laravel"
       [`POSTGRES_PASSWORD=${process.env.POSTGRES_INITDB_ROOT_PASSWORD}`],
     );
 
-    await this.checkAndCreateContainerDiferentPort( 
+    await this.checkAndCreateContainerDiferentPort(
       process.env.PGADMIN_CONTAINER_NAME || 'pgadmin_container',
       'dpage/pgadmin4:latest',
       Number(process.env.PGADMIN_PORT) || 3315,
-      Number(process.env.PGADMIN_PORT) || 80,
+      80,
       process.env.PGADMIN_VOLUME || 'servers.json',
       networkName,
-      [`PGADMIN_DEFAULT_EMAIL=admin@admin.com`,
-        `PGADMIN_DEFAULT_PASSWORD=admin123`],
+      [`PGADMIN_DEFAULT_EMAIL=${process.env.PGADMIN_DEFAULT_EMAIL}`,
+      `PGADMIN_DEFAULT_PASSWORD=${process.env.PGADMIN_DEFAULT_PASSWORD}`],
     )
 
-    await this.checkAndCreateContainerDiferentPort( 
+    await this.checkAndCreateContainerDiferentPort(
       process.env.PHPADMIN_CONTAINER_NAME || 'phpmyadmin_container',
       'phpmyadmin/phpmyadmin:latest',
-      Number(process.env.PHPADMIN_PORT) || 3316,
-      Number(process.env.PHPADMIN_PORT) || 80,
+      Number(process.env.PHPADMIN_PORT) || 3317,
+      80,
       process.env.PHPADMIN_VOLUME || 'servers.json',
       networkName,
       [`PMA_HOST=${process.env.MYSQL_CONTAINER_NAME}`,
-        `PMA_PORT=${process.env.MYSQL_PORT}`],
+      `PMA_PORT=${process.env.MYSQL_PORT}`],
+    )
+
+    await this.checkAndCreateContainerDiferentPort(
+      process.env.MONGOEXPRESS_CONTAINER_NAME || 'mongoexpress_container',
+      'mongo-express:latest',
+      Number(process.env.MONGOEXPRESS_PORT) || 3316,
+      8081,
+      'mangoCompas',
+      networkName,
+      [`ME_CONFIG_MONGODB_ADMINUSERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
+      `ME_CONFIG_MONGODB_ADMINPASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+      `ME_CONFIG_BASICAUTH_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}1`,
+      `ME_CONFIG_BASICAUTH_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+      `ME_CONFIG_MONGODB_SERVER=${process.env.MONGO_CONTAINER_NAME}`,
+      `ME_CONFIG_MONGODB_PORT=${process.env.MONGO_PORT}`,
+      `ME_CONFIG_MONGODB_URL=mongodb://${process.env.MONGO_CONTAINER_NAME}:${process.env.MONGO_PORT}`],  
+    )
+
+    await this.checkAndCreateContainerDiferentPort(
+      process.env.MARIDADB_CONTAINER_NAME || 'mariadb_container',
+      'phpmyadmin/phpmyadmin:latest',
+      Number(process.env.MARIDADB_PORT) || 3318,
+      80,
+      process.env.MARIDADB_VOLUME || 'servers',
+      networkName,
+      [`PMA_HOST=${process.env.MARIADB_CONTAINER_NAME}`,
+      `PMA_PORT=${process.env.MARIADB_PORT}`],
     )
 
   }
