@@ -128,6 +128,7 @@ export class WorkerProcessor {
         ).json;
 
         //Formating custom env
+        /* 
         if (repositorio.variables_de_entorno) {
           const custom_varaibles_de_entorno = repositorios[
             index
@@ -151,7 +152,8 @@ export class WorkerProcessor {
             ...custom_varaibles_de_entorno,
           };
         }
-
+        */
+        
         if (repositorio.tipo === 'B') {
           envLinesBackend = {
             ...env_repositorio,
