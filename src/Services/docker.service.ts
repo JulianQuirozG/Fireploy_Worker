@@ -100,8 +100,6 @@ export class DockerfileService {
       # Etapa 2: Desarrollo
       FROM node:22-alpine
 
-      ${envLines}
-
       WORKDIR /app/app${id_project}
 
       # Copiar todos los archivos desde la etapa anterior
