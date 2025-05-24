@@ -37,7 +37,7 @@ export class DockerfileService {
   ): string {
     const envLines = Object.entries(env[0])
       .map(([key, value]) => `${key}="${value}"`)
-      .join(' ');
+      .join('\n');
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
       .join(', ');
