@@ -36,7 +36,7 @@ export class DockerfileService {
     id_project: string,
   ): string {
     const envLines = Object.entries(env[0])
-      .map(([key, value]) => `${key}="${value}"`)
+      .map(([key, value]) => `ENV ${key}="${value}"`)
       .join('\n');
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
@@ -47,7 +47,7 @@ export class DockerfileService {
       FROM node:22-alpine AS builder
 
       # Copia las variables de entorno si las necesitas
-      RUN echo ${envLines} > .env
+      ${envLines}
 
       WORKDIR /app
 
@@ -65,6 +65,8 @@ export class DockerfileService {
 
       # Etapa 2: Producción
       FROM node:22-alpine
+
+      ${envLines}
 
       # Establecer variables de entorno para producción
       ENV NODE_ENV=production
@@ -84,7 +86,7 @@ export class DockerfileService {
       # Etapa 1: Construcción
       FROM node:22 AS builder
 
-      RUN echo ${envLines} > .env
+      ${envLines}
 
       WORKDIR /app
 
@@ -95,11 +97,12 @@ export class DockerfileService {
       RUN npm install
       RUN npm i --save-dev @types/node
 
-      RUN echo ${envLines} > .env
       RUN npm run build
 
       # Etapa 2: Desarrollo
       FROM node:22-alpine
+
+      ${envLines}
 
       WORKDIR /app/app${id_project}
 
@@ -128,7 +131,7 @@ export class DockerfileService {
       # Instala dependencias sin generar archivos innecesarios
       RUN npm install 
 
-       RUN echo ${envLines} > .env
+      ${envLines}
 
       # Copia el código fuente al contenedor
       COPY . .
@@ -156,7 +159,7 @@ export class DockerfileService {
       # Install dependencies
       RUN pip install -r requirements.txt
       
-       RUN echo ${envLines} > .env
+      ${envLines}
 
 
       # Copy the entire application source code
@@ -174,7 +177,7 @@ export class DockerfileService {
       # Copy application files to the Apache server directory
       COPY . /var/www/html/
       
-       RUN echo ${envLines} > .env
+      ${envLines}
 
       # Expose the application port
       EXPOSE ${port}
@@ -231,7 +234,7 @@ export class DockerfileService {
 
       # Establece variable de entorno del puerto
 
-       RUN echo ${envLines} > .env
+      ${envLines}
 
 
       # Establece el directorio de trabajo
@@ -268,7 +271,7 @@ export class DockerfileService {
       # Establece el directorio de trabajo
       WORKDIR /app${id_project}
 
-       RUN echo ${envLines} > .env
+      ${envLines}
 
       # Copia los archivos del proyecto
       COPY . .
@@ -310,7 +313,7 @@ export class DockerfileService {
       # Instala Composer desde la imagen oficial
       COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-      RUN echo ${envLines} > .env
+      ${envLines}
 
       # Copia el proyecto Laravel al contenedor
       COPY . app${id_project}
@@ -341,7 +344,7 @@ export class DockerfileService {
       # Etapa 1: Construcción del proyecto con Maven y Java 17
         FROM maven:3.9.4-eclipse-temurin-21 AS builder
         WORKDIR /app
-         RUN echo ${envLines} > .env
+        ${envLines}
 
         COPY . .
        
@@ -349,6 +352,7 @@ export class DockerfileService {
 
         # Etapa 2: Imagen de producción con JDK 17 ligero
         FROM eclipse-temurin:21-jdk-alpine
+        ${envLines}
         WORKDIR /app
         COPY --from=builder /app/target/*.jar app.jar
     
@@ -365,7 +369,7 @@ FROM python:3.10-slim
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-RUN echo ${envLinesAngular} > .env
+${envLines}
 
 # Copiar los archivos del proyecto
 COPY . .
@@ -396,7 +400,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 
       # Instala serve
       RUN npm install -g serve
-     RUN echo ${envLines} > .env
+      ${envLines}
 
       # Expone el puerto donde se servirá el contenido
       EXPOSE ${port}
@@ -466,13 +470,16 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     language: string,
     port: number,
     env: any[],
+    customEnv: string,
   ): Promise<string> {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
-    const envFile = this.getEnvFile(language, id_project, port);
-    if (envFile) {
-      await fs.writeFileSync(`${projectPath}/.env`, envFile);
-    }
+    let envFile = this.getEnvFile(language, id_project, port);
+
+    envFile =  envFile + customEnv; 
+    
+    await fs.writeFileSync(`${projectPath}/.env`, envFile);
+
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
 
@@ -541,6 +548,7 @@ AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 VITE_APP_NAME="Laravel"
       `,
+
     };
     return templates[language];
   }
