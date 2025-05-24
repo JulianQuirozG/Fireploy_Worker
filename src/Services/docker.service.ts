@@ -47,7 +47,7 @@ export class DockerfileService {
       FROM node:22-alpine AS builder
 
       # Copia las variables de entorno si las necesitas
-      ${envLines}
+      RUN echo ${envLinesAngular} > .env
 
       WORKDIR /app
 
@@ -127,11 +127,11 @@ export class DockerfileService {
       # Instala dependencias sin generar archivos innecesarios
       RUN npm install 
 
+       RUN echo ${envLinesAngular} > .env
+
       # Copia el código fuente al contenedor
       COPY . .
       COPY . /app/app${id_project}
-
-      ${envLines}
 
       # Detecta si hay un script de build y lo ejecuta (opcional)
       RUN echo "Checking for build script..." && \
@@ -155,7 +155,8 @@ export class DockerfileService {
       # Install dependencies
       RUN pip install -r requirements.txt
       
-      ${envLines}
+       RUN echo ${envLinesAngular} > .env
+
 
       # Copy the entire application source code
       COPY . .
@@ -172,7 +173,7 @@ export class DockerfileService {
       # Copy application files to the Apache server directory
       COPY . /var/www/html/
       
-      ${envLines}
+       RUN echo ${envLinesAngular} > .env
 
       # Expose the application port
       EXPOSE ${port}
@@ -229,7 +230,8 @@ export class DockerfileService {
 
       # Establece variable de entorno del puerto
 
-      ${envLines}
+       RUN echo ${envLinesAngular} > .env
+
 
       # Establece el directorio de trabajo
       WORKDIR /app
@@ -264,6 +266,8 @@ export class DockerfileService {
 
       # Establece el directorio de trabajo
       WORKDIR /app${id_project}
+
+       RUN echo ${envLinesAngular} > .env
 
       # Copia los archivos del proyecto
       COPY . .
@@ -305,7 +309,7 @@ export class DockerfileService {
       # Instala Composer desde la imagen oficial
       COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-      ${envLines}
+      RUN echo ${envLinesAngular} > .env
 
       # Copia el proyecto Laravel al contenedor
       COPY . app${id_project}
@@ -336,15 +340,17 @@ export class DockerfileService {
       # Etapa 1: Construcción del proyecto con Maven y Java 17
         FROM maven:3.9.4-eclipse-temurin-21 AS builder
         WORKDIR /app
+         RUN echo ${envLinesAngular} > .env
+
         COPY . .
-        ${envLines}
+       
         RUN mvn clean package -DskipTests
 
         # Etapa 2: Imagen de producción con JDK 17 ligero
         FROM eclipse-temurin:21-jdk-alpine
         WORKDIR /app
         COPY --from=builder /app/target/*.jar app.jar
-        ${envLines}
+    
         EXPOSE ${port}
         
         # Variable para pasar flags de JVM si se desea
@@ -389,7 +395,8 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 
       # Instala serve
       RUN npm install -g serve
-      ${envLines}
+     RUN echo ${envLinesAngular} > .env
+
       # Expone el puerto donde se servirá el contenido
       EXPOSE ${port}
 
@@ -569,11 +576,7 @@ VITE_APP_NAME="Laravel"
       const buildCmd = `docker build -t ${imageName} "${projectPath}"`;
 
       let runCmd = ``;
-      if (envLines) {
-        runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${envLines} ${imageName} `;
-      } else {
-        runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
-      }
+      runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
 
       console.log(runCmd);
       await this.executeCommand(buildCmd);
