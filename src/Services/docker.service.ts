@@ -84,7 +84,7 @@ export class DockerfileService {
       # Etapa 1: Construcción
       FROM node:22 AS builder
 
-      ${envLines}
+      RUN echo ${envLinesAngular} > .env
 
       WORKDIR /app
 
