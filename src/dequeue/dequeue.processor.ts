@@ -226,7 +226,7 @@ export class WorkerProcessor {
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `frontend_${dockerfiles[0].proyect_id}`,
-          );
+          ) + logBackend;
           dockerfiles[1].log = await this.dockerfileService.getDockerLog(
             `backend_${dockerfiles[1].proyect_id}`,
           ) + logBackend;
@@ -236,7 +236,7 @@ export class WorkerProcessor {
           ) + logBackend;
           dockerfiles[0].log = await this.dockerfileService.getDockerLog(
             `backend_${dockerfiles[0].proyect_id}`,
-          );
+          ) + logBackend;
         }
         console.log(dockerfiles);
       } else {
