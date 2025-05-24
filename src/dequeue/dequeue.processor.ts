@@ -171,6 +171,7 @@ export class WorkerProcessor {
           repositorio.framework,
           puertos,
           [env_repositorio],
+          repositorio.variables_de_entorno
         );
 
         // Add dockerfiles
