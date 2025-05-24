@@ -95,6 +95,7 @@ export class DockerfileService {
       RUN npm install
       RUN npm i --save-dev @types/node
 
+      RUN echo ${envLinesAngular} > .env
       RUN npm run build
 
       # Etapa 2: Desarrollo
