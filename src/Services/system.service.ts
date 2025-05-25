@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class SystemService {
   private total_ports: number = 65535;
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Retrieves a list of available network ports.
@@ -51,5 +53,36 @@ export class SystemService {
       console.error(`Error ejecutando el comando:`, error);
       return [];
     }
+  }
+
+  async syncFilesAdd(rutepath: string, ficheros: any[], tipo: string, id_proyect: number): Promise<void> {
+
+    if (tipo == 'F') tipo = 'Frontend';
+    else if (tipo == 'B') tipo = 'Backend';
+    else tipo = 'All';
+    //Creo la direccion del folder
+    const pat=`${rutepath}/${id_proyect}/${tipo}`
+    if (!fs.existsSync(pat)) {
+      fs.mkdirSync(pat, { recursive: true });
+    }
+    //paso de ficheros en base 64 a buffer y les coloco el nombre de la base de datos
+    for (const fichero of ficheros) {
+      try {
+        if (!fichero.nombre || !fichero.contenido) {
+          console.warn('⚠️ Fichero omitido por falta de datos:', fichero);
+          continue;
+        }
+
+        const rutaArchivo = path.join(pat, fichero.nombre);
+        const buffer = Buffer.from(fichero.contenido, 'base64');
+
+        fs.writeFileSync(rutaArchivo, buffer);
+        console.log(`Archivo guardado: ${rutaArchivo}`);
+      } catch (err) {
+        console.error(`Error al guardar el archivo ${fichero.nombre}:`, err.message);
+        throw new Error(`Hubo un problema al crear los archivos solicitados para el repositorio`)
+      }
+    }
+
   }
 }

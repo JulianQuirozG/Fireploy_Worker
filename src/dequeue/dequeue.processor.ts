@@ -5,6 +5,7 @@ import { Job } from 'bull';
 import { DockerfileService } from 'src/Services/docker.service';
 import { GitService } from 'src/Services/git.service';
 import { NginxConfigGenerator } from 'src/Services/nginx.service';
+import { SystemService } from 'src/Services/system.service';
 
 @Processor('deploy')
 export class WorkerProcessor {
@@ -12,6 +13,7 @@ export class WorkerProcessor {
     private dockerfileService: DockerfileService,
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
+    private systemService: SystemService,
   ) { }
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
@@ -65,6 +67,11 @@ export class WorkerProcessor {
           proyect.id as unknown as string,
           repositorio.tipo,
         );
+        //Create Ficheros
+        if(repositorio.ficheros && repositorio.ficheros.length > 0){
+          console.log(`VAMOS A CREAR LOS ARCHIVOS QUE ME ENVIASTE EN BASE64`)
+          await this.systemService.syncFilesAdd(process.env.FOLDER_ROUTE,repositorio.ficheros,repositorio.tipo,proyect.id as number);
+        }
 
         // Set env repositorio DB_DATABASE, DB_PORT, DB_HOST, DB_USER, DB_PASSWORD, PORT
         // Set project port
