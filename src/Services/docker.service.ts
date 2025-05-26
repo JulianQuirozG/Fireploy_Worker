@@ -1244,7 +1244,7 @@ networks:
             if (error) {
               return reject(
                 new Error(
-                  `Error: --- Logs del contenedor ${containerName} ---\n  ${error.message}`,
+                  `Error: --- Logs del contenedor ${containerName} ---\n  ${error.message} + ErrorCode-015`,
                 ),
               );
             }
@@ -1256,7 +1256,7 @@ networks:
       });
     } catch (error) {
       throw new Error(
-        `Error obteniendo logs del contenedor ${containerName}: ${error.message}`,
+        `Error obteniendo logs del contenedor ${containerName}: ${error.message} ErrorCode-015`,
       );
     }
   }
