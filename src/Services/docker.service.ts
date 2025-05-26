@@ -225,9 +225,7 @@ export class DockerfileService {
       EXPOSE ${port}
 
       # Comando para correr la aplicación en producción
-      ##CMD ["sh", "-c", "serve -l ${port}", "--single"]
-      ##CMD ["serve -l ${port}", ".", "--base", "app${id_project}"]
-      CMD ["serve", "-l", "${port}", "app${id_project}", "--single"]
+      CMD ["sh", "-c", "serve -l ${port}", "--single"]
       `,
 
       Expressjs: `# Imagen base oficial de Node.js
@@ -1020,7 +1018,7 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
     dbPassword: string,
   ): Promise<string> {
     const command = `
-  docker exec ${containerName} mysql -u root -p'${process.env.MARIADB_INITDB_ROOT_PASSWORD}' -e "
+  docker exec ${containerName} mariadb -u root -p'${process.env.MARIADB_INITDB_ROOT_PASSWORD}' -e "
     CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
     CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
     GRANT ALL PRIVILEGES ON \\\`${dbName}\\\`.* TO '${dbUser}'@'%';
