@@ -9,6 +9,7 @@ import { GitService } from './Services/git.service';
 import { NginxConfigGenerator } from './Services/nginx.service';
 import { ProjectProcessor } from './dequeue/dequeue.project';
 import { SystemService } from './Services/system.service';
+import { DeleteProcessor } from './dequeue/dequeue.delete';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SystemService } from './Services/system.service';
       { name: 'deploy' },
       { name: 'data_base' },
       { name: 'project_manager' },
+      { name: 'delete' },
     ),
   ],
   providers: [
@@ -35,7 +37,8 @@ import { SystemService } from './Services/system.service';
     DockerfileService,
     GitService,
     NginxConfigGenerator,
-    SystemService
+    SystemService,
+    DeleteProcessor,
   ],
 })
 export class AppModule {}

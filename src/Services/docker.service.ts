@@ -7,6 +7,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
+import { rm } from 'fs/promises';
 
 @Injectable()
 export class DockerfileService {
@@ -1258,6 +1259,73 @@ networks:
       throw new Error(
         `Error obteniendo logs del contenedor ${containerName}: ${error.message} ErrorCode-015`,
       );
+    }
+  }
+
+  async deleteContainer(containerName: string) {
+    try {
+      return await new Promise((resolve) => {
+        exec(`docker rm -f ${containerName}`, (error, stdout, stderr) => {
+          resolve(`Contenedor eliminado`);
+        });
+      });
+    } catch (error) {
+      throw new Error(
+        `Error eliminado el contendor ${containerName}: ${error.message} ErrorCode-016`,
+      );
+    }
+  }
+
+  async deleteDataBase(db_type, db_name, db_user) {
+    let command = `
+    docker exec ${process.env.MYSQL_CONTAINER_NAME} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
+      DROP DATABASE IF EXISTS \\\`${db_name}\\\`;
+      DROP USER IF EXISTS '${db_user}'@'%';
+      FLUSH PRIVILEGES;"
+    `;
+    if (db_type == 'N') {
+      command = `
+      docker exec ${process.env.MONGO_CONTAINER_NAME} mongosh --port ${process.env.MONGO_PORT} -u "${process.env.MONGO_INITDB_ROOT_USERNAME}" -p "${process.env.MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "
+        const db = db.getSiblingDB('${db_name}');
+        db.dropUser('${db_user}');
+        db.dropDatabase();
+  "
+`;
+    }
+    if (db_type == 'P') {
+      command = `
+        docker exec ${process.env.POSTGRES_CONTAINER_NAME} bash -c '
+        PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '\\''${db_name}'\\'' AND pid <> pg_backend_pid();" > /dev/null;
+
+        PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname='\\''${db_name}'\\''" | grep -q 1 && \
+        PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "DROP DATABASE \\"${db_name}\\"";
+
+        PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -tc "SELECT 1 FROM pg_roles WHERE rolname='\\''${db_user}'\\''" | grep -q 1 && \
+        PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -p ${process.env.POSTGRES_PORT} -c "DROP USER \\"${db_user}\\"";
+        '
+        `;
+    }
+    if (db_type == 'M') {
+      command = `
+  docker exec ${process.env.MARIADB_CONTAINER_NAME} mariadb -u root -p'${process.env.MARIADB_INITDB_ROOT_PASSWORD}' -e "
+    DROP DATABASE IF EXISTS \\\`${db_name}\\\`;
+    DROP USER IF EXISTS '${db_user}'@'%';
+    FLUSH PRIVILEGES;"
+`;
+    }
+    try {
+      await new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error al eliminar DB y usuario:`, stderr);
+            reject(new Error(error + ' ErrorCode-020'));
+          } else {
+            resolve(stdout);
+          }
+        });
+      });
+    } catch (error: any) {
+      throw new Error(error.message || error);
     }
   }
 }
