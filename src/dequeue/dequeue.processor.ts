@@ -14,7 +14,7 @@ export class WorkerProcessor {
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
     private systemService: SystemService,
-  ) {}
+  ) { }
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
     //Create repository
@@ -139,7 +139,7 @@ export class WorkerProcessor {
         ).json;
 
         //Formating custom env
-        /* 
+        let custom_repositorio;
         if (repositorio.variables_de_entorno) {
           const custom_varaibles_de_entorno = repositorios[
             index
@@ -158,12 +158,12 @@ export class WorkerProcessor {
             );
 
           //add custom env
-          env_repositorio = {
+          custom_repositorio = {
             ...env_repositorio,
             ...custom_varaibles_de_entorno,
           };
         }
-        */
+
 
         if (repositorio.tipo === 'B') {
           envLinesBackend = {
@@ -172,6 +172,15 @@ export class WorkerProcessor {
         } else {
           envLinesFrontend = {
             ...env_repositorio,
+          };
+        }
+
+        if (repositorio.framework === `Django` && !custom_repositorio.DJANGO_PROJECT) {
+          throw new Error('Al crear un repositorio en Django debes añadir la variable DJANGO_PROJECT en las variables de entorno con el nombre del proyecto para su ejecución.');
+        } else if (repositorio.tipo === `Django`) {
+          env_repositorio = {
+            ...env_repositorio,
+            DJANGO_PROJECT: custom_repositorio.DJANGO_PROJECT
           };
         }
 

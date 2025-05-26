@@ -409,6 +409,28 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
       # Sirve todo desde /app
       CMD ["serve", "/app", "-l", "${port}"]
       `,
+      Django: `
+      FROM python:3.11-slim
+
+      WORKDIR /app
+      
+      ${envLines}
+
+      COPY requirements.txt ./
+      RUN apt-get update && apt-get install -y \
+          build-essential \
+          libpq-dev \
+          libjpeg-dev \
+          zlib1g-dev \
+          && pip install --no-cache-dir -r requirements.txt \
+          && apt-get clean
+
+      COPY . .
+
+      EXPOSE ${port}
+
+      CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn $DJANGO_PROJECT.wsgi:application --bind 0.0.0.0:${port}"]
+      `
     };
 
     // Return the corresponding Dockerfile template for the given technology
