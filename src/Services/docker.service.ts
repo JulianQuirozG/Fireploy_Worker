@@ -429,7 +429,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
       EXPOSE ${port}
 
       CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn $DJANGO_PROJECT.wsgi:application --bind 0.0.0.0:${port}"]
-      `
+      `,
     };
 
     // Return the corresponding Dockerfile template for the given technology
@@ -497,13 +497,10 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
     let envFile = this.getEnvFile(language, id_project, port);
-    if (envFile)
-      envFile = envFile + customEnv;
-    else
-      envFile = customEnv;
+    if (envFile) envFile = envFile + customEnv;
+    else envFile = customEnv;
 
-    if (envFile)
-      await fs.writeFileSync(`${projectPath}/.env`, envFile);
+    if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
     // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port, env, id_project);
@@ -573,7 +570,6 @@ AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 VITE_APP_NAME="Laravel"
       `,
-
     };
     return templates[language];
   }
@@ -615,18 +611,22 @@ VITE_APP_NAME="Laravel"
       runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
 
       console.log(runCmd);
-      const { stdout: buildOut, stderr: buildErr } = await this.executeCommandWhitReturn(buildCmd);
+      const { stdout: buildOut, stderr: buildErr } =
+        await this.executeCommandWhitReturn(buildCmd);
       await this.executeCommand(runCmd);
 
-      return `Contenedor ${containerName} corriendo en el puerto ${port}\n\n` + `--- LOGS DE BUILD ---\n${buildOut}${buildErr}\n`;
+      return (
+        `Contenedor ${containerName} corriendo en el puerto ${port}\n\n` +
+        `--- LOGS DE BUILD ---\n${buildOut}${buildErr}\n`
+      );
     } catch (error) {
       const stdout = error.stdout || '';
       const stderr = error.stderr || '';
       const message = error.message || 'Error desconocido';
       throw new Error(
         `ErrorCode-003: Error al ejecutar Docker ${message}\n` +
-        `--- STDOUT ---\n${stdout}\n` +
-        `--- STDERR ---\n${stderr}\n`,
+          `--- STDOUT ---\n${stdout}\n` +
+          `--- STDERR ---\n${stderr}\n`,
       );
     }
   }
@@ -653,13 +653,15 @@ VITE_APP_NAME="Laravel"
   }
 
   /**
- * Executes a shell command asynchronously using the Node.js `exec` function.
- *
- * @param command - The shell command to execute.
- * @returns A Promise that resolves when the command executes successfully,
- *          or rejects with the error if it fails.
- */
-  private executeCommandWhitReturn(command: string): Promise<{ stdout: string; stderr: string }> {
+   * Executes a shell command asynchronously using the Node.js `exec` function.
+   *
+   * @param command - The shell command to execute.
+   * @returns A Promise that resolves when the command executes successfully,
+   *          or rejects with the error if it fails.
+   */
+  private executeCommandWhitReturn(
+    command: string,
+  ): Promise<{ stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -841,9 +843,11 @@ VITE_APP_NAME="Laravel"
       80,
       process.env.PGADMIN_VOLUME || 'servers.json',
       networkName,
-      [`PGADMIN_DEFAULT_EMAIL=${process.env.PGADMIN_DEFAULT_EMAIL}`,
-      `PGADMIN_DEFAULT_PASSWORD=${process.env.PGADMIN_DEFAULT_PASSWORD}`],
-    )
+      [
+        `PGADMIN_DEFAULT_EMAIL=${process.env.PGADMIN_DEFAULT_EMAIL}`,
+        `PGADMIN_DEFAULT_PASSWORD=${process.env.PGADMIN_DEFAULT_PASSWORD}`,
+      ],
+    );
 
     await this.checkAndCreateContainerDiferentPort(
       process.env.PHPADMIN_CONTAINER_NAME || 'phpmyadmin_container',
@@ -852,9 +856,11 @@ VITE_APP_NAME="Laravel"
       80,
       process.env.PHPADMIN_VOLUME || 'servers.json',
       networkName,
-      [`PMA_HOST=${process.env.MYSQL_CONTAINER_NAME}`,
-      `PMA_PORT=${process.env.MYSQL_PORT}`],
-    )
+      [
+        `PMA_HOST=${process.env.MYSQL_CONTAINER_NAME}`,
+        `PMA_PORT=${process.env.MYSQL_PORT}`,
+      ],
+    );
 
     await this.checkAndCreateContainerDiferentPort(
       process.env.MONGOEXPRESS_CONTAINER_NAME || 'mongoexpress_container',
@@ -863,14 +869,16 @@ VITE_APP_NAME="Laravel"
       8081,
       'mangoCompas',
       networkName,
-      [`ME_CONFIG_MONGODB_ADMINUSERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
-      `ME_CONFIG_MONGODB_ADMINPASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
-      `ME_CONFIG_BASICAUTH_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}1`,
-      `ME_CONFIG_BASICAUTH_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
-      `ME_CONFIG_MONGODB_SERVER=${process.env.MONGO_CONTAINER_NAME}`,
-      `ME_CONFIG_MONGODB_PORT=${process.env.MONGO_PORT}`,
-      `ME_CONFIG_MONGODB_URL=mongodb://${process.env.MONGO_CONTAINER_NAME}:${process.env.MONGO_PORT}`],
-    )
+      [
+        `ME_CONFIG_MONGODB_ADMINUSERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}`,
+        `ME_CONFIG_MONGODB_ADMINPASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+        `ME_CONFIG_BASICAUTH_USERNAME=${process.env.MONGO_INITDB_ROOT_USERNAME}1`,
+        `ME_CONFIG_BASICAUTH_PASSWORD=${process.env.MONGO_INITDB_ROOT_PASSWORD}`,
+        `ME_CONFIG_MONGODB_SERVER=${process.env.MONGO_CONTAINER_NAME}`,
+        `ME_CONFIG_MONGODB_PORT=${process.env.MONGO_PORT}`,
+        `ME_CONFIG_MONGODB_URL=mongodb://${process.env.MONGO_CONTAINER_NAME}:${process.env.MONGO_PORT}`,
+      ],
+    );
 
     await this.checkAndCreateContainerDiferentPort(
       process.env.MARIDADB_CONTAINER_NAME || 'mariadb_container',
@@ -879,10 +887,11 @@ VITE_APP_NAME="Laravel"
       80,
       process.env.MARIDADB_VOLUME || 'servers',
       networkName,
-      [`PMA_HOST=${process.env.MARIADB_CONTAINER_NAME}`,
-      `PMA_PORT=${process.env.MARIADB_PORT}`],
-    )
-
+      [
+        `PMA_HOST=${process.env.MARIADB_CONTAINER_NAME}`,
+        `PMA_PORT=${process.env.MARIADB_PORT}`,
+      ],
+    );
   }
 
   /**
@@ -1099,9 +1108,9 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
     );
-    await this.executeCommand(`docker rm -f frontend_${id}`).catch(() => { });;
-    await this.executeCommand(`docker rm -f backend_${id}`).catch(() => { });;
-    await this.executeCommand(`docker rm -f Container-${id}`).catch(() => { });;
+    await this.executeCommand(`docker rm -f frontend_${id}`).catch(() => {});
+    await this.executeCommand(`docker rm -f backend_${id}`).catch(() => {});
+    await this.executeCommand(`docker rm -f Container-${id}`).catch(() => {});
 
     const composeContent = `
 services:
@@ -1145,25 +1154,28 @@ networks:
     }
 
     try {
-      const { stdout: buildOut, stderr: buildErr } = await this.executeCommandWhitReturn(
-        `docker compose -f ${composePath} build --no-cache`,
-      );
-      const { stdout: upOut, stderr: upErr } = await this.executeCommandWhitReturn(`docker compose -f ${composePath} up -d`);
+      const { stdout: buildOut, stderr: buildErr } =
+        await this.executeCommandWhitReturn(
+          `docker compose -f ${composePath} build --no-cache`,
+        );
+      const { stdout: upOut, stderr: upErr } =
+        await this.executeCommandWhitReturn(
+          `docker compose -f ${composePath} up -d`,
+        );
 
       return (
         `Docker-compose creado y corriendo.\n` +
         `--- LOGS DE BUILD ---\n${buildOut}${buildErr}\n` +
         `--- LOGS DE UP ---\n${upOut}${upErr}\n`
       );
-
     } catch (error) {
       const message = error.message || 'Error desconocido';
       const stdout = error.stdout || '';
       const stderr = error.stderr || '';
       throw new Error(
         `ErrorCode-004: Error ejecutando docker compose: ${message}\n` +
-        `--- STDOUT ---\n${stdout}\n` +
-        `--- STDERR ---\n${stderr}\n`,
+          `--- STDOUT ---\n${stdout}\n` +
+          `--- STDERR ---\n${stderr}\n`,
       );
     }
   }
@@ -1226,19 +1238,25 @@ networks:
 
   async getDockerLog(containerName: string) {
     try {
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         setTimeout(() => {
           exec(`docker logs ${containerName}`, (error, stdout, stderr) => {
             if (error) {
-              return reject(new Error(`Error: --- Logs del contenedor ${containerName} ---\n  ${error.message}`));
+              return reject(
+                new Error(
+                  `Error: --- Logs del contenedor ${containerName} ---\n  ${error.message} + ErrorCode-015`,
+                ),
+              );
             }
-            resolve(`--- Logs del contenedor ${containerName} ---\n${stdout}\n${stderr}`);
+            resolve(
+              `--- Logs del contenedor ${containerName} ---\n${stdout}\n${stderr}`,
+            );
           });
         }, 10000);
       });
     } catch (error) {
       throw new Error(
-        `Error obteniendo logs del contenedor ${containerName}: ${error.message}`,
+        `Error obteniendo logs del contenedor ${containerName}: ${error.message} ErrorCode-015`,
       );
     }
   }
