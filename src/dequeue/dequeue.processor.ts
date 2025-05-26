@@ -184,7 +184,7 @@ export class WorkerProcessor {
           };
         }
 
-        console.log(env_repositorio);
+        console.log("Diablo",custom_repositorio);
 
         //Create Dockerfile
         const dockerfilePath = await this.dockerfileService.generateDockerfile(
