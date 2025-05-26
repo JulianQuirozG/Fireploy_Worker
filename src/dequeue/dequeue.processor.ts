@@ -14,7 +14,7 @@ export class WorkerProcessor {
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
     private systemService: SystemService,
-  ) { }
+  ) {}
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
     //Create repository
@@ -68,9 +68,13 @@ export class WorkerProcessor {
           repositorio.tipo,
         );
         //Create Ficheros
-        if(repositorio.ficheros && repositorio.ficheros.length > 0){
-          console.log(`VAMOS A CREAR LOS ARCHIVOS QUE ME ENVIASTE EN BASE64`)
-          await this.systemService.syncFilesAdd(process.env.FOLDER_ROUTE,repositorio.ficheros,repositorio.tipo,proyect.id as number);
+        if (repositorio.ficheros && repositorio.ficheros.length > 0) {
+          await this.systemService.syncFilesAdd(
+            process.env.FOLDER_ROUTE,
+            repositorio.ficheros,
+            repositorio.tipo,
+            proyect.id as number,
+          );
         }
 
         // Set env repositorio DB_DATABASE, DB_PORT, DB_HOST, DB_USER, DB_PASSWORD, PORT
@@ -178,7 +182,7 @@ export class WorkerProcessor {
           repositorio.framework,
           puertos,
           [env_repositorio],
-          repositorio.variables_de_entorno
+          repositorio.variables_de_entorno,
         );
 
         // Add dockerfiles
@@ -206,13 +210,13 @@ export class WorkerProcessor {
 
       let responseNginx: any;
       if (repositorios.length > 1) {
-        const doker_compose_file =
-          logBackend = await this.dockerfileService.createDockerCompose(
+        const doker_compose_file = (logBackend =
+          await this.dockerfileService.createDockerCompose(
             proyect.id,
             proyect.puerto,
             envLinesBackend,
             envLinesFrontend,
-          );
+          ));
         console.log(
           '⚙️ Procesando trabajo desde la cola system:',
           doker_compose_file,
@@ -227,25 +231,26 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
-        //console.log("asdasd2", configureNginx);
         responseNginx = await configureNginx.generate();
-        //console.log("asdasd", responseNginx);
         if (dockerfiles[0].type == 'F') {
-          dockerfiles[0].log = await this.dockerfileService.getDockerLog(
-            `frontend_${dockerfiles[0].proyect_id}`,
-          ) + logBackend;
-          dockerfiles[1].log = await this.dockerfileService.getDockerLog(
-            `backend_${dockerfiles[1].proyect_id}`,
-          ) + logBackend;
+          dockerfiles[0].log =
+            (await this.dockerfileService.getDockerLog(
+              `frontend_${dockerfiles[0].proyect_id}`,
+            )) + logBackend;
+          dockerfiles[1].log =
+            (await this.dockerfileService.getDockerLog(
+              `backend_${dockerfiles[1].proyect_id}`,
+            )) + logBackend;
         } else {
-          dockerfiles[1].log = await this.dockerfileService.getDockerLog(
-            `frontend_${dockerfiles[1].proyect_id}`,
-          ) + logBackend;
-          dockerfiles[0].log = await this.dockerfileService.getDockerLog(
-            `backend_${dockerfiles[0].proyect_id}`,
-          ) + logBackend;
+          dockerfiles[1].log =
+            (await this.dockerfileService.getDockerLog(
+              `frontend_${dockerfiles[1].proyect_id}`,
+            )) + logBackend;
+          dockerfiles[0].log =
+            (await this.dockerfileService.getDockerLog(
+              `backend_${dockerfiles[0].proyect_id}`,
+            )) + logBackend;
         }
-        console.log(dockerfiles);
       } else {
         const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
           {
@@ -254,9 +259,10 @@ export class WorkerProcessor {
           },
         ]);
         responseNginx = await configureNginx.generate();
-        dockerfiles[0].log = await this.dockerfileService.getDockerLog(
-          `Container-${dockerfiles[0].proyect_id}`,
-        ) + logFront;
+        dockerfiles[0].log =
+          (await this.dockerfileService.getDockerLog(
+            `Container-${dockerfiles[0].proyect_id}`,
+          )) + logFront;
       }
       return {
         status: 'ok',
