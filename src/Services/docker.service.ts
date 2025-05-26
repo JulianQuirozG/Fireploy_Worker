@@ -424,6 +424,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
           && apt-get clean
 
       COPY . .
+      COPY . /app/app${id_project}
 
       EXPOSE ${port}
 
