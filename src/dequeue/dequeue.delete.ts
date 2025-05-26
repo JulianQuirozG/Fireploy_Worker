@@ -15,27 +15,19 @@ export class DeleteProcessor {
     try {
       const project = job.data;
       const db = project.base_de_datos;
-      console.log(1);
       //Delete containers
       if (project.tipo_proyecto == 'M') {
-        await this.dockerfileService.deleteContainer(
-          `Container-${job.data.project.id}`,
-        );
+        await this.dockerfileService.deleteContainer(`Container-${project.id}`);
       } else {
-        await this.dockerfileService.deleteContainer(
-          `backend_${job.data.project.id}`,
-        );
-        await this.dockerfileService.deleteContainer(
-          `frontend_${job.data.project.id}`,
-        );
+        await this.dockerfileService.deleteContainer(`backend_${project.id}`);
+        await this.dockerfileService.deleteContainer(`frontend_${project.id}`);
       }
-      console.log(2);
 
       //Delete project files
       await this.systemService.deleteFolder(
         `${process.env.FOLDER_ROUTE}/${project.id}`,
       );
-      console.log(3);
+      
       //Si tiene eliminar la base de datos
       if (project.base_de_datos)
         await this.dockerfileService.deleteDataBase(
