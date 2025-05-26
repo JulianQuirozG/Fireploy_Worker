@@ -184,7 +184,7 @@ export class WorkerProcessor {
           };
         }
 
-        console.log("Diablo",custom_repositorio);
+        console.log("Diablo",custom_repositorio.DJANGO_PROJECT);
 
         //Create Dockerfile
         const dockerfilePath = await this.dockerfileService.generateDockerfile(
