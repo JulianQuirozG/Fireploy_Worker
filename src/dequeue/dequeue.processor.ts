@@ -175,14 +175,16 @@ export class WorkerProcessor {
           };
         }
 
-        if (repositorio.framework === `Django` && !custom_repositorio.DJANGO_PROJECT) {
+        if ((repositorio.framework === `Django` && !custom_repositorio) || !custom_repositorio.DJANGO_PROJECT) {
           throw new Error('Al crear un repositorio en Django debes añadir la variable DJANGO_PROJECT en las variables de entorno con el nombre del proyecto para su ejecución.');
         } else if (repositorio.tipo === `Django`) {
           env_repositorio = {
             ...env_repositorio,
-            DJANGO_PROJECT: custom_repositorio.DJANGO_PROJECT
+            ...custom_repositorio
           };
         }
+
+        console.log(env_repositorio);
 
         //Create Dockerfile
         const dockerfilePath = await this.dockerfileService.generateDockerfile(
