@@ -34,7 +34,7 @@ export class DockerfileService {
     tech: string,
     port: number,
     env: any[],
-    customEnv: any[],
+    customEnv: string,
     id_project: string,
   ): string {
     const envLines = Object.entries(env[0])
@@ -43,8 +43,17 @@ export class DockerfileService {
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
       .join(', ');
-    const customEnvLines = Object.entries(customEnv[0])
-      .map(([key, value]) => `ENV ${key}="${value}"`)
+    const customEnvLines = customEnv
+      .split('\n')
+      .filter(Boolean)
+      .reduce((lines: string[], line: string) => {
+        const [key, ...valueParts] = line.split('=');
+        if (key && valueParts.length > 0) {
+          const value = valueParts.join('=').trim();
+          lines.push(`ENV ${key.trim()}="${value}"`);
+        }
+        return lines;
+      }, [])
       .join('\n');
 
     const templates = {
@@ -518,7 +527,13 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
     // Retrieve the corresponding Dockerfile template
-    const dockerFile = this.getDockerFile(language, port, env, customEnv,  id_project);
+    const dockerFile = this.getDockerFile(
+      language,
+      port,
+      env,
+      customEnv,
+      id_project,
+    );
 
     if (!dockerFile) {
       throw new Error(`Language ${language} is not supported.  ErrorCode-002`);
