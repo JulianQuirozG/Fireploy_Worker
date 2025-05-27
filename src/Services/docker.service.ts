@@ -207,7 +207,7 @@ export class DockerfileService {
       RUN echo "export const environment = { production: true, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.development.ts
     
       # Construye la aplicación en producción
-      RUN npm run build -- --configuration production --base-href /app${id_project}/  --deploy-url /app${id_project}/
+      RUN npm run build -- --configuration production --deploy-url /app${id_project}/
 
       # Etapa 2: servidor de archivos estáticos
       FROM node:22-alpine
@@ -394,9 +394,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
       # Copiamos el contenido de app/app1 al contenedor
       COPY . /app/app${id_project}
       COPY . /app
-
-      RUN find /app -name "*.html" -exec sed -i 's|<head>|<head><base href="/app${id_project}/" />|' {} +
-      RUN find /app/app${id_project} -name "*.html" -exec sed -i 's|<head>|<head><base href="/app${id_project}/" />|' {} +
 
       # Instala serve
       RUN npm install -g serve
