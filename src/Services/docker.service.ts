@@ -207,7 +207,7 @@ export class DockerfileService {
       RUN echo "export const environment = { production: true, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.development.ts
     
       # Construye la aplicación en producción
-      RUN npm run build -- --configuration production --deploy-url /app${id_project}/
+      RUN npm run build -- --configuration production
 
       # Etapa 2: servidor de archivos estáticos
       FROM node:22-alpine
