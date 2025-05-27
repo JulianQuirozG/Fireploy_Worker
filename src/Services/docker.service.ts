@@ -34,6 +34,7 @@ export class DockerfileService {
     tech: string,
     port: number,
     env: any[],
+    customEnv: any[],
     id_project: string,
   ): string {
     const envLines = Object.entries(env[0])
@@ -42,6 +43,9 @@ export class DockerfileService {
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
       .join(', ');
+    const customEnvLines = Object.entries(customEnv[0])
+      .map(([key, value]) => `ENV ${key}="${value}"`)
+      .join('\n');
 
     const templates = {
       Nextjs: `
@@ -172,19 +176,33 @@ export class DockerfileService {
       # Start the application
       CMD ["python", "app.py"]`,
 
-      Php: `# Use PHP 8.1 with Apache
-      FROM php:8.1-apache
-      
-      # Copy application files to the Apache server directory
-      COPY . /var/www/html/
-      
-      ${envLines}
+      Php: `FROM php:8.2-cli
+        RUN apt-get update && apt-get install -y \
+            git \
+            unzip \
+            zip \
+            libzip-dev \
+            && docker-php-ext-install zip pdo pdo_mysql
 
-      # Expose the application port
-      EXPOSE ${port}
-      
-      # Start Apache in the foreground
-      CMD ["apache2-foreground"]`,
+        # Directorio de trabajo
+        WORKDIR /app
+
+        ${envLines}
+        ${customEnvLines}
+
+
+
+        COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+        # Copia tu código al contenedor
+        COPY . /app
+
+        RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+        EXPOSE ${port}
+
+        # Comando: servidor embebido en el puerto y basepath
+        CMD sh -c "php -S 0.0.0.0:${port}"`,
 
       Angular: `
       # Etapa 1: Construcción del entorno de desarrollo
@@ -500,7 +518,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
     // Retrieve the corresponding Dockerfile template
-    const dockerFile = this.getDockerFile(language, port, env, id_project);
+    const dockerFile = this.getDockerFile(language, port, env, customEnv,  id_project);
 
     if (!dockerFile) {
       throw new Error(`Language ${language} is not supported.  ErrorCode-002`);
