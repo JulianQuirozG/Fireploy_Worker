@@ -1287,10 +1287,10 @@ networks:
       command = `
       docker exec ${process.env.MONGO_CONTAINER_NAME} mongosh --port ${process.env.MONGO_PORT} -u "${process.env.MONGO_INITDB_ROOT_USERNAME}" -p "${process.env.MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "
         const db = db.getSiblingDB('${db_name}');
-        db.dropUser('${db_user}');
+        db.dropUser('${db_name}');
         db.dropDatabase();
-  "
-`;
+        "
+      `;
     }
     if (db_type == 'P') {
       command = `
