@@ -244,6 +244,7 @@ export class WorkerProcessor {
           },
         ]);
         responseNginx = await configureNginx.generate();
+        responseNginx = await configureNginx.generateSubDomain();
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log =
             (await this.dockerfileService.getDockerLog(
@@ -271,6 +272,7 @@ export class WorkerProcessor {
           },
         ]);
         responseNginx = await configureNginx.generate();
+        responseNginx = await configureNginx.generateSubDomain();
         dockerfiles[0].log =
           (await this.dockerfileService.getDockerLog(
             `Container-${dockerfiles[0].proyect_id}`,
