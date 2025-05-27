@@ -14,7 +14,7 @@ export class WorkerProcessor {
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
     private systemService: SystemService,
-  ) { }
+  ) {}
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
     //Create repository
@@ -141,7 +141,7 @@ export class WorkerProcessor {
         //Formating custom env
         let custom_repositorio;
         if (repositorio.variables_de_entorno) {
-          const custom_varaibles_de_entorno = repositorios[
+          const custom_variables_de_entorno = repositorios[
             index
           ].variables_de_entorno
             .split('\n')
@@ -160,10 +160,9 @@ export class WorkerProcessor {
           //add custom env
           custom_repositorio = {
             ...env_repositorio,
-            ...custom_varaibles_de_entorno,
+            ...custom_variables_de_entorno,
           };
         }
-
 
         if (repositorio.tipo === 'B') {
           envLinesBackend = {
@@ -175,15 +174,17 @@ export class WorkerProcessor {
           };
         }
 
-
-        
-
-        if ((repositorio.framework === `Django`) && (!custom_repositorio || !custom_repositorio.DJANGO_PROJECT  )) {
-          throw new Error('Al crear un repositorio en Django debes añadir la variable DJANGO_PROJECT en las variables de entorno con el nombre del proyecto para su ejecución.');
-        } else if (repositorio.framework === `Django` ) {
+        if (
+          repositorio.framework === `Django` &&
+          (!custom_repositorio || !custom_repositorio.DJANGO_PROJECT)
+        ) {
+          throw new Error(
+            'Al crear un repositorio en Django debes añadir la variable DJANGO_PROJECT en las variables de entorno con el nombre del proyecto para su ejecución.',
+          );
+        } else if (repositorio.framework === `Django`) {
           env_repositorio = {
             ...env_repositorio,
-            DJANGO_PROJECT:custom_repositorio.DJANGO_PROJECT
+            DJANGO_PROJECT: custom_repositorio.DJANGO_PROJECT,
           };
         }
 
