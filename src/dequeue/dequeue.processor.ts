@@ -113,21 +113,21 @@ export class WorkerProcessor {
 
         env_repositorio = {
           PORT: puertos,
-          FIREPLOY_HOST: process.env.APP_HOST,
+          FIREPLOY_HOST: `${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}.${process.env.APP_HOST}`,
           ...env_repositorio,
         };
         if (repositorio.tipo === 'B') {
           env_repositorio = {
             BASE_PATH: `/api${proyect.id}`,
-            URL_FRONTEND: `https://${process.env.APP_HOST}/app${proyect.id}`,
-            URL_BACKEND: `https://${process.env.APP_HOST}/api${proyect.id}`,
+            URL_FRONTEND: `https://app${proyect.id}.${process.env.APP_HOST}`,
+            URL_BACKEND: `https://api${proyect.id}.${process.env.APP_HOST}`,
             ...env_repositorio,
           };
         } else {
           env_repositorio = {
             BASE_PATH: `/app${proyect.id}`,
-            URL_BACKEND: `https://${process.env.APP_HOST}/api${proyect.id}`,
-            URL_FRONTEND: `https://${process.env.APP_HOST}/app${proyect.id}`,
+            URL_BACKEND: `https://api${proyect.id}.${process.env.APP_HOST}`,
+            URL_FRONTEND: `https://app${proyect.id}.${process.env.APP_HOST}`,
             ...env_repositorio,
           };
         }
@@ -200,7 +200,7 @@ export class WorkerProcessor {
         // Add dockerfiles
         dockerfiles.push({
           proyect_id: proyect.id,
-          rute: `https://${process.env.APP_HOST}/${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}/`,
+          rute: `https://${repositorio.tipo == 'B' ? 'api' : 'app'}${proyect.id}.${process.env.APP_HOST}`,
           type: repositorio.tipo,
           port: puertos,
           language: repositorio.framework,
@@ -243,7 +243,8 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto++}`,
           },
         ]);
-        responseNginx = await configureNginx.generate();
+        //responseNginx = await configureNginx.generate();
+        responseNginx = await configureNginx.generateSubDomain();
         if (dockerfiles[0].type == 'F') {
           dockerfiles[0].log =
             (await this.dockerfileService.getDockerLog(
@@ -270,7 +271,8 @@ export class WorkerProcessor {
             target: `${process.env.IP}:${proyect.puerto}`,
           },
         ]);
-        responseNginx = await configureNginx.generate();
+        //responseNginx = await configureNginx.generate();
+        responseNginx = await configureNginx.generateSubDomain();
         dockerfiles[0].log =
           (await this.dockerfileService.getDockerLog(
             `Container-${dockerfiles[0].proyect_id}`,
