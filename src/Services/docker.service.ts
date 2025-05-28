@@ -37,24 +37,29 @@ export class DockerfileService {
     customEnv: string,
     id_project: string,
   ): string {
+    let customEnvLines = '';
+
     const envLines = Object.entries(env[0])
       .map(([key, value]) => `ENV ${key}="${value}"`)
       .join('\n');
     const envLinesAngular = Object.entries(env[0])
       .map(([key, value]) => `${key}:'${value}'`)
       .join(', ');
-    const customEnvLines = customEnv
-      .split('\n')
-      .filter(Boolean)
-      .reduce((lines: string[], line: string) => {
-        const [key, ...valueParts] = line.split('=');
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').trim();
-          lines.push(`ENV ${key.trim()}="${value}"`);
-        }
-        return lines;
-      }, [])
-      .join('\n');
+
+    if (customEnv) {
+      customEnvLines = customEnv
+        .split('\n')
+        .filter(Boolean)
+        .reduce((lines: string[], line: string) => {
+          const [key, ...valueParts] = line.split('=');
+          if (key && valueParts.length > 0) {
+            const value = valueParts.join('=').trim();
+            lines.push(`ENV ${key.trim()}="${value}"`);
+          }
+          return lines;
+        }, [])
+        .join('\n');
+    }
 
     const templates = {
       Nextjs: `
@@ -539,8 +544,8 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 
     let envFile = this.getEnvFile(language, id_project, port);
     if (envFile) envFile = envFile + customEnv;
-    else if(customEnv) envFile = customEnv;
-    else envFile=``;
+    else if (customEnv) envFile = customEnv;
+    else envFile = ``;
 
     if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
