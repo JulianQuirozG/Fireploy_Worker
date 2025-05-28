@@ -185,33 +185,50 @@ export class DockerfileService {
       # Start the application
       CMD ["python", "app.py"]`,
 
-      Php: `FROM php:8.2-cli
-        RUN apt-get update && apt-get install -y \
-            git \
-            unzip \
-            zip \
-            libzip-dev \
-            && docker-php-ext-install zip pdo pdo_mysql
+      Php: `FROM php:8.2-apache
 
-        # Directorio de trabajo
-        WORKDIR /app
+# Instala extensiones y utilidades necesarias
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    libzip-dev \
+    && docker-php-ext-install zip pdo pdo_mysql
 
-        ${envLines}
-        ${customEnvLines}
+    ${envLines}
+    ${customEnvLines}
 
+# Habilita mod_rewrite
+RUN a2enmod rewrite
 
+# Permite el uso de .htaccess
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-        COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Cambiar Apache para que escuche
+RUN sed -i 's/80/${port}/g' /etc/apache2/ports.conf && \
+    sed -i 's/:80>/:${port}>/g' /etc/apache2/sites-enabled/000-default.conf
 
-        # Copia tu código al contenedor
-        COPY . /app
+# Copiar Composer desde imagen oficial
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-        RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Establecer el nuevo directorio de trabajo
+WORKDIR /app
 
-        EXPOSE ${port}
+# Copiar el código fuente al contenedor
+COPY . /app
 
-        # Comando: servidor embebido en el puerto y basepath
-        CMD sh -c "php -S 0.0.0.0:${port}"`,
+# Opcional: enlazar el nuevo directorio al root de Apache
+RUN rm -rf /var/www/html && ln -s /app /var/www/html
+
+# Instalar dependencias PHP
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
+
+# Exponer el puerto personalizado
+EXPOSE ${port}
+
+# Comando de inicio de Apache
+CMD ["apache2-foreground"]
+`,
 
       Angular: `
       # Etapa 1: Construcción del entorno de desarrollo
