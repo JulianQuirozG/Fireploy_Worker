@@ -202,7 +202,7 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 # Permite el uso de .htaccess
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # Cambiar Apache para que escuche
 RUN sed -i 's/80/${port}/g' /etc/apache2/ports.conf && \
