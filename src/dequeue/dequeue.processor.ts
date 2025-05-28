@@ -88,11 +88,11 @@ export class WorkerProcessor {
         // Set data base variables
         if (proyect.base_de_datos) {
           env_repositorio = {
-            DB_DATABASE: proyect.base_de_datos.nombre,
+            DB_DATABASE: encodeURIComponent(proyect.base_de_datos.nombre),
             DB_PORT: db_Port,
             DB_HOST: db_Host,
-            DB_USER: proyect.base_de_datos.usuario,
-            DB_PASSWORD: proyect.base_de_datos.contrasenia,
+            DB_USER: encodeURIComponent(proyect.base_de_datos.usuario),
+            DB_PASSWORD: encodeURIComponent(proyect.base_de_datos.contrasenia),
             DB_CONNECTION_URI: proyect.base_de_datos.url,
           };
         }
