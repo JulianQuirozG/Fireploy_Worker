@@ -14,7 +14,7 @@ export class WorkerProcessor {
     private gitService: GitService,
     private nginxService: NginxConfigGenerator,
     private systemService: SystemService,
-  ) {}
+  ) { }
   @Process({ name: 'deploy', concurrency: 1 })
   async createRepositoryJob(job: Job) {
     //Create repository
@@ -86,19 +86,15 @@ export class WorkerProcessor {
         }
 
         // Set data base variables
-        if (
-          (proyect.base_de_datos)
-        ) {
-          if (proyect.base_de_datos.tipo == process.env.SQL_DB) {
-            env_repositorio = {
-              DB_DATABASE: proyect.base_de_datos.nombre,
-              DB_PORT: db_Port,
-              DB_HOST: db_Host,
-              DB_USER: proyect.base_de_datos.usuario,
-              DB_PASSWORD: proyect.base_de_datos.contrasenia,
-              DB_CONNECTION_URI: proyect.base_de_datos.url,
-            };
-          }
+        if (proyect.base_de_datos) {
+          env_repositorio = {
+            DB_DATABASE: proyect.base_de_datos.nombre,
+            DB_PORT: db_Port,
+            DB_HOST: db_Host,
+            DB_USER: proyect.base_de_datos.usuario,
+            DB_PASSWORD: proyect.base_de_datos.contrasenia,
+            DB_CONNECTION_URI: proyect.base_de_datos.url,
+          };
         }
 
         env_repositorio = {
