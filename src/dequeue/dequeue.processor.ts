@@ -99,7 +99,7 @@ export class WorkerProcessor {
               DB_PASSWORD: proyect.base_de_datos.contrasenia,
               DB_CONNECTION_URI: proyect.base_de_datos.url,
             };
-          } else {
+          } else if(proyect.base_de_datos) {
             env_repositorio = {
               DB_CONNECTION_URI: proyect.base_de_datos.url,
               DB_DATABASE: proyect.base_de_datos.nombre,
