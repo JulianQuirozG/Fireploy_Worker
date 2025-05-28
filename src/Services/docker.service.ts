@@ -126,7 +126,7 @@ export class DockerfileService {
       WORKDIR /app
 
       # Copiar todos los archivos desde la etapa anterior
-      COPY --from=builder /app 
+      COPY --from=builder /app /app
 
       # Instalar las dependencias de desarrollo
       RUN npm install 
