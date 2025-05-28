@@ -27,13 +27,13 @@ export class DeleteProcessor {
       await this.systemService.deleteFolder(
         `${process.env.FOLDER_ROUTE}/${project.id}`,
       );
-      
-      //Si tiene eliminar la base de datos
+
+      //Delete database;
       if (project.base_de_datos)
         await this.dockerfileService.deleteDataBase(
           db.tipo,
           db.nombre,
-          db.user,
+          db.usuario,
         );
     } catch (error) {
       throw new Error(error);
