@@ -252,8 +252,8 @@ CMD ["apache2-foreground"]
       COPY . .
 
       # Reemplaza las variables de entorno de Angular
-      RUN echo "export const environment = { production: false, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.ts
-      RUN echo "export const environment = { production: true, basePath: '/app${id_project}/', ${envLinesAngular} };" > src/environments/environment.development.ts
+      RUN echo "export const environment = { production: false, basePath: '/', ${envLinesAngular} };" > src/environments/environment.ts
+      RUN echo "export const environment = { production: true, basePath: '/', ${envLinesAngular} };" > src/environments/environment.development.ts
     
       # Construye la aplicación en producción
       RUN npm run build -- --configuration production
