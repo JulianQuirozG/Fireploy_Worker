@@ -546,6 +546,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     if (envFile) envFile = envFile + customEnv;
     else if (customEnv) envFile = customEnv;
     else envFile = ``;
+    console.log(envFile);
 
     if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
@@ -576,8 +577,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 APP_ENV=local
 APP_KEY=base64:sEeLvWgOFti7RTxcWUekDqSy3ueqQnR9f+8wC4QO7HU=
 APP_DEBUG=true
-APP_URL=https://${process.env.APP_HOST}/app${id_project}
-APP_BASE_PATH=/app${id_project}
 APP_LOCALE=en
 APP_FALLBACK_LOCALE=en
 APP_FAKER_LOCALE=en_US
