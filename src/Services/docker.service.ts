@@ -543,8 +543,9 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
     let envFile = this.getEnvFile(language, id_project, port);
-    if (envFile) envFile = envFile + customEnv;
-    else if (customEnv) envFile = customEnv;
+    if (envFile) {
+      if (customEnv) envFile = envFile + customEnv;
+    } else if (customEnv) envFile = customEnv;
     else envFile = ``;
     console.log(envFile);
 
@@ -597,7 +598,7 @@ SESSION_DRIVER=file
 SESSION_LIFETIME=120
 SESSION_ENCRYPT=false
 SESSION_PATH=/
-SESSION_DOMAIN=null
+SESSION_DOMAIN=
 BROADCAST_CONNECTION=log
 FILESYSTEM_DISK=local
 QUEUE_CONNECTION=sync
@@ -605,14 +606,14 @@ CACHE_STORE=file
 MEMCACHED_HOST=127.0.0.1
 REDIS_CLIENT=phpredis
 REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
+REDIS_PASSWORD=
 REDIS_PORT=6379
 MAIL_MAILER=log
-MAIL_SCHEME=null
+MAIL_SCHEME=
 MAIL_HOST=127.0.0.1
 MAIL_PORT=2525
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
+MAIL_USERNAME=
+MAIL_PASSWORD=
 MAIL_FROM_ADDRESS=hello@example.com
 MAIL_FROM_NAME="Laravel"
 AWS_ACCESS_KEY_ID=
