@@ -226,7 +226,7 @@ COPY . /app
 RUN rm -rf /var/www/html && ln -s /app /var/www/html
 
 # Instalar dependencias PHP
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader && composer dump-autoload
 
 # Exponer el puerto personalizado
 EXPOSE ${port}
