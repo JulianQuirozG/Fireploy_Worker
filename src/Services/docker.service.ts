@@ -476,6 +476,32 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
 
       CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn $DJANGO_PROJECT.wsgi:application --bind 0.0.0.0:${port}"]
       `,
+      Java: `# Etapa 1: Construcción con Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos del proyecto
+COPY . .
+
+${envLines}
+# Construir el proyecto y generar el WAR
+RUN mvn clean package -DskipTests
+
+# Etapa 2: Despliegue con Payara Full compatible con Jakarta EE
+FROM payara/server-full:latest
+
+RUN sed -i 's/port="8080"/port="${port}"/' /opt/payara/appserver/glassfish/domains/domain1/config/domain.xml
+
+# Copiar el WAR al directorio de autodeploy
+COPY --from=builder /app/target/*.war /opt/payara/appserver/glassfish/domains/domain1/autodeploy/
+
+# Exponer puertos estándar
+EXPOSE ${port}
+
+# Comando para iniciar el servidor Payara con el dominio por defecto
+CMD ["asadmin", "start-domain", "-v", "--host=0.0.0.0", "--port=${port}"]`,
     };
 
     // Return the corresponding Dockerfile template for the given technology
