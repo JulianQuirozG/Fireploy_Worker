@@ -469,8 +469,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${port}"]`,
           && pip install --no-cache-dir -r requirements.txt \
           && apt-get clean
 
-      COPY . .
-      COPY . /app/app${id_project}
+      COPY . /app
 
       EXPOSE ${port}
 
