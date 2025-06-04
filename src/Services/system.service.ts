@@ -82,7 +82,6 @@ export class SystemService {
         const buffer = Buffer.from(fichero.contenido, 'base64');
 
         fs.writeFileSync(rutaArchivo, buffer);
-        console.log(`Archivo guardado: ${rutaArchivo}`);
       } catch (err) {
         console.error(
           `Error al guardar el archivo ${fichero.nombre}:`,

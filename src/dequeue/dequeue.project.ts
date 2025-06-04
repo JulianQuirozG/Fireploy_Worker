@@ -1,5 +1,6 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+import { logTask } from 'simple-git/dist/src/lib/tasks/log';
 import { DockerfileService } from 'src/Services/docker.service';
 
 @Processor('project_manager')
@@ -39,5 +40,36 @@ export class ProjectProcessor {
       status: 'ok',
       message: 'Trabajo de deploy del sistema recibido y procesado',
     };
+  }
+
+  @Process({ name: 'getProjectLogs', concurrency: 1 })
+  async getProjectLogsJob(job: Job) {
+    const project = job.data;
+    const repositories = project.repositorios;
+    const logs = [];
+    try {
+      for (const repository of repositories) {
+        if (project.tipo_proyecto == 'M') {
+          logs.push({
+            repository_id: repository.id,
+            log: await this.dockerfileService.getDockerLog(
+              `Container-${project.id}`,
+            ),
+          });
+        } else {
+          const containerName =
+            repository.tipo === 'F'
+              ? `frontend_${project.id}`
+              : `backend_${project.id}`;
+          logs.push({
+            repository_id: repository.id,
+            log: await this.dockerfileService.getDockerLog(containerName),
+          });
+        }
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+    return logs;
   }
 }
