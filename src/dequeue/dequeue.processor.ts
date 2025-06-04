@@ -22,11 +22,6 @@ export class WorkerProcessor {
       throw new BadRequestException(
         `No se ha enviado la url, el path, el id del proyecto o el tipo de repositorio`,
       );
-    console.log('⚙️ Procesando trabajo desde la cola system:', job.data);
-    console.log(
-      'Credencales de la base de datos',
-      job.data.proyect.base_de_datos,
-    );
     const proyect = job.data.proyect;
     const repositorios = job.data.repositorios;
 
@@ -216,10 +211,6 @@ export class WorkerProcessor {
             envLinesBackend,
             envLinesFrontend,
           ));
-        console.log(
-          '⚙️ Procesando trabajo desde la cola system:',
-          doker_compose_file,
-        );
         const configureNginx = new NginxConfigGenerator(`${proyect.id}`, [
           {
             path: `app${proyect.id as string}`,

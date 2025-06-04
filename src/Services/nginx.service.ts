@@ -58,18 +58,15 @@ location ${loc} {
 }
 `.trim() + '\n\n';
 
-      console.log(`✅ Alias generado: location ${loc} → ${proxyPass}`);
     }
 
     // Escribe el archivo de inclusión
     writeFileSync(this.includeFile, config.trim() + '\n', 'utf8');
-    console.log(`📄 Archivo de rutas actualizado: ${this.includeFile}`);
 
     // Valida y recarga NGINX
     try {
       await execSync('nginx -t', { stdio: 'inherit' });
       await execSync('systemctl reload nginx', { stdio: 'inherit' });
-      console.log('🚀 NGINX recargado correctamente');
     } catch (e) {
       console.error('❌ Error al recargar NGINX:', e, ' ErrorCode-005');
       process.exit(1);
@@ -113,14 +110,12 @@ server {
 `.trim();
 
       writeFileSync(pathFile, config + '\n', 'utf8');
-      console.log(`📄 Archivo principal de NGINX creado: ${pathFile}`);
     }
 
     // Valida y recarga NGINX
     try {
       await execSync('nginx -t', { stdio: 'inherit' });
       await execSync('systemctl reload nginx', { stdio: 'inherit' });
-      console.log('🚀 NGINX recargado correctamente');
     } catch (e) {
       console.error('❌ Error al recargar NGINX:', e, ' ErrorCode-005');
       process.exit(1);

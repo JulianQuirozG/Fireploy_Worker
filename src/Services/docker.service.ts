@@ -572,7 +572,6 @@ CMD ["asadmin", "start-domain", "-v", "--host=0.0.0.0", "--port=${port}"]`,
       if (customEnv) envFile = envFile + customEnv;
     } else if (customEnv) envFile = customEnv;
     else envFile = ``;
-    console.log(envFile);
 
     if (envFile) await fs.writeFileSync(`${projectPath}/.env`, envFile);
 
@@ -688,7 +687,6 @@ VITE_APP_NAME="Laravel"
       let runCmd = ``;
       runCmd = `docker run -d --network ${networkName} -p ${port}:${port} --name ${containerName} ${imageName} `;
 
-      console.log(runCmd);
       const { stdout: buildOut, stderr: buildErr } =
         await this.executeCommandWhitReturn(buildCmd);
       await this.executeCommand(runCmd);
@@ -720,10 +718,8 @@ VITE_APP_NAME="Laravel"
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error ejecutando: ${command}`, stderr);
           reject(error);
         } else {
-          console.log(`Ejecutado: ${command}`, stdout);
           resolve();
         }
       });
@@ -743,10 +739,8 @@ VITE_APP_NAME="Laravel"
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error ejecutando: ${command}`, stderr);
           reject({ error, stdout, stderr });
         } else {
-          console.log(`Ejecutado: ${command}`, stdout);
           resolve({ stdout, stderr });
         }
       });
@@ -806,7 +800,6 @@ VITE_APP_NAME="Laravel"
 
         const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}  ${envString} ${image} --port=${port}`;
 
-        console.log(command);
         await this.executeCommand(command);
       }
     }
@@ -858,7 +851,6 @@ VITE_APP_NAME="Laravel"
 
         const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port2} ${volume}${envString} ${image}`;
 
-        console.log(command);
         await this.executeCommand(command);
       }
     }
@@ -1079,7 +1071,6 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
 PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "${dbName}" -p ${process.env.POSTGRES_PORT} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\"${dbUser}\\"";
 '
 `;
-    console.log(postgresCommand);
 
     try {
       await new Promise((resolve, reject) => {
@@ -1152,7 +1143,6 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
       const networks = stdout.split('\n');
 
       if (!networks.includes(networkName)) {
-        console.log(`Creating Docker network: ${networkName}`);
         execSync(`docker network create ${networkName}`);
         return networkName;
       }

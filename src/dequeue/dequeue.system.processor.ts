@@ -64,7 +64,6 @@ export class systemProcessor {
       throw new Error(error);
     }
 
-    console.log('⚙️ Procesando trabajo desde la cola system:', job.data);
     return {
       status: 'ok',
       message: 'Trabajo de deploy del sistema recibido y procesado',
