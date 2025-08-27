@@ -1,5 +1,7 @@
 # 🔥 Fireploy Worker
 
+Este proyecto y sus componentes se encuentran licenciados bajo la Licencia MIT, lo que significa que cualquier persona puede utilizar, copiar, modificar y distribuir el software con fines personales, académicos o comerciales, siempre que se mantenga el aviso original de derechos de autor. Esta licencia es muy permisiva y favorece la adopción abierta, pero también indica que el software se proporciona "tal cual", sin garantías de ningún tipo, por lo que el autor no se hace responsable de su uso.
+
 Este repositorio contiene la configuración e instrucciones necesarias para desplegar el **Worker de Fireploy** en un servidor Linux con Ubuntu.  
 
 ---
