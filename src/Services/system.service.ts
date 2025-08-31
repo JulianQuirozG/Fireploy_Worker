@@ -56,6 +56,25 @@ export class SystemService {
     }
   }
 
+  /**
+ * Writes provided base64-encoded files to the corresponding project directory based on type.
+ *
+ * This method:
+ * - Determines the target directory path based on `rutepath`, `id_proyect`, and `tipo` (Frontend, Backend, or All).
+ * - Ensures the directory exists; if not, it creates it recursively.
+ * - Iterates over the `ficheros` array, where each item should contain:
+ *    - `nombre`: The name of the file.
+ *    - `contenido`: Base64-encoded content of the file.
+ * - Converts the base64 content to a buffer and writes it to disk with the given filename.
+ * - Skips files with missing `nombre` or `contenido`.
+ *
+ * @param {string} rutepath - Root directory where files should be stored.
+ * @param {Array} ficheros - Array of objects containing `nombre` and `contenido` in base64 format.
+ * @param {string} tipo - File type indicator: 'F' (Frontend), 'B' (Backend), or other (All).
+ * @param {number} id_proyect - Project ID used to structure directory paths.
+ * @returns {Promise<void>} Resolves when all files are written, rejects if an error occurs.
+ * @throws Will throw an error if any file fails to write to the filesystem.
+ */
   async syncFilesAdd(
     rutepath: string,
     ficheros: any[],
@@ -93,7 +112,17 @@ export class SystemService {
       }
     }
   }
-
+  
+  /**
+ * Deletes a folder and all its contents recursively.
+ *
+ * This method attempts to remove the specified folder, including all subfolders and files.
+ * If the folder does not exist, no error will be thrown due to the `force: true` option.
+ *
+ * @param {string} folderPath - Absolute or relative path to the folder to be deleted.
+ * @returns {Promise<void>} Resolves when the deletion is attempted.
+ * @throws Will throw an error if the deletion fails due to unexpected reasons.
+ */
   async deleteFolder(folderPath: string) {
     try {
       rm(folderPath, { recursive: true, force: true });

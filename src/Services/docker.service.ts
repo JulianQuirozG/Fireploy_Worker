@@ -595,6 +595,18 @@ CMD ["asadmin", "start-domain", "-v", "--host=0.0.0.0", "--port=${port}"]`,
     return dockerfilePath;
   }
 
+  /**
+ * Returns a template `.env` configuration file for a specified programming language or framework.
+ *
+ * This method currently supports predefined `.env` templates based on the provided language.
+ * The returned template is a multiline string representing common environment variables used
+ * in development for that stack (e.g., Laravel).
+ *
+ * @param language - The name of the language or framework (e.g., 'Laravel') for which the `.env` template is requested.
+ * @param id_project - The project identifier (currently unused, reserved for future extensions).
+ * @param port - The port number to be used (currently unused, reserved for future extensions).
+ * @returns A string containing the `.env` file content for the specified language, or `undefined` if the language is not supported.
+ */
   getEnvFile(language: string, id_project: string, port: number) {
     const templates = {
       Laravel: `
@@ -701,8 +713,8 @@ VITE_APP_NAME="Laravel"
       const message = error.message || 'Error desconocido';
       throw new Error(
         `ErrorCode-003: Error al ejecutar Docker ${message}\n` +
-          `--- STDOUT ---\n${stdout}\n` +
-          `--- STDERR ---\n${stderr}\n`,
+        `--- STDOUT ---\n${stdout}\n` +
+        `--- STDERR ---\n${stderr}\n`,
       );
     }
   }
@@ -805,6 +817,27 @@ VITE_APP_NAME="Laravel"
     }
   }
 
+  /**
+ * Ensures that a Docker container is running, and creates it if it does not exist.
+ *
+ * This method first checks whether a container with the given name is running.
+ * - If the container is running, it logs a confirmation.
+ * - If the container exists but is stopped, it starts it.
+ * - If the container does not exist, it creates and starts it using the provided configuration.
+ *
+ * The method adjusts volume mounting paths based on the container type (e.g., MySQL, MongoDB, etc.)
+ * and includes environment variables if provided. It binds a host port to a container port as specified.
+ *
+ * @param containerName - The name of the Docker container to check or create.
+ * @param image - The Docker image to use if the container needs to be created.
+ * @param port - The host port to bind.
+ * @param port2 - The container port to expose.
+ * @param volume - The volume path to mount in the container.
+ * @param network - The Docker network to which the container should be connected.
+ * @param envVars - (Optional) An array of environment variables in 'KEY=VALUE' format.
+ * @returns A promise that resolves when the container is verified to be running or created successfully.
+ * @throws An error if Docker commands fail during creation or startup of the container.
+ */
   async checkAndCreateContainerDiferentPort(
     containerName: string,
     image: string,
@@ -1008,6 +1041,24 @@ VITE_APP_NAME="Laravel"
     }
   }
 
+  /**
+ * Creates a MongoDB database and user inside a running Docker container.
+ *
+ * This method executes a MongoDB shell command via Docker to:
+ * - Create a new database.
+ * - Create a user with `readWrite` privileges on that database.
+ * - Insert a metadata document in the `users` collection with creation info.
+ *
+ * If successful, the method returns a MongoDB connection URI that includes the
+ * new user's credentials and database name.
+ *
+ * @param containerName - The name of the Docker container running MongoDB.
+ * @param dbName - The name of the new database to be created.
+ * @param dbUser - The username for the new MongoDB user.
+ * @param dbPassword - The password for the new MongoDB user.
+ * @returns A promise that resolves to the MongoDB connection URI for the newly created database and user.
+ * @throws An error if the Docker command fails or MongoDB user/database creation encounters an issue.
+ */
   async createMyNoSQLDatabaseAndUser(
     containerName: string,
     dbName: string,
@@ -1048,6 +1099,23 @@ VITE_APP_NAME="Laravel"
     }
   }
 
+  /**
+ * Creates a PostgreSQL database and user inside a running Docker container.
+ *
+ * This method executes a series of `psql` commands inside the specified PostgreSQL Docker container to:
+ * - Create a new database if it does not already exist.
+ * - Create a user with the provided credentials if the user does not exist.
+ * - Grant full privileges on the database and schema to the new user.
+ *
+ * If the process is successful, it returns a PostgreSQL connection URI with the created credentials.
+ *
+ * @param containerName - The name of the Docker container running PostgreSQL.
+ * @param dbName - The name of the database to be created.
+ * @param dbUser - The name of the database user to be created.
+ * @param dbPassword - The password for the new database user.
+ * @returns A promise that resolves to the PostgreSQL connection URI.
+ * @throws An error if any step of the database or user creation fails.
+ */
   async createPostgresDatabaseAndUser(
     containerName: string,
     dbName: string,
@@ -1090,6 +1158,23 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
     }
   }
 
+  /**
+ * Creates a MariaDB database and user inside a running Docker container.
+ *
+ * This method executes a shell command within the specified MariaDB Docker container to:
+ * - Create a new database if it does not already exist.
+ * - Create a new user with the given credentials, if not already present.
+ * - Grant all privileges on the newly created database to the new user.
+ *
+ * If successful, it returns a MariaDB connection URI using the provided credentials.
+ *
+ * @param containerName - The name of the Docker container running MariaDB.
+ * @param dbName - The name of the database to create.
+ * @param dbUser - The username to create and assign privileges.
+ * @param dbPassword - The password for the database user.
+ * @returns A promise that resolves to the MariaDB connection URI.
+ * @throws An error if the command fails to execute or database/user creation fails.
+ */
   async createMariaDBDatabaseAndUser(
     containerName: string,
     dbName: string,
@@ -1176,9 +1261,9 @@ PGPASSWORD="${process.env.POSTGRES_INITDB_ROOT_PASSWORD}" psql -U postgres -d "$
       process.env.FOLDER_ROUTE + `/${id}`,
       'docker-compose.yml',
     );
-    await this.executeCommand(`docker rm -f frontend_${id}`).catch(() => {});
-    await this.executeCommand(`docker rm -f backend_${id}`).catch(() => {});
-    await this.executeCommand(`docker rm -f Container-${id}`).catch(() => {});
+    await this.executeCommand(`docker rm -f frontend_${id}`).catch(() => { });
+    await this.executeCommand(`docker rm -f backend_${id}`).catch(() => { });
+    await this.executeCommand(`docker rm -f Container-${id}`).catch(() => { });
 
     const composeContent = `
 services:
@@ -1242,8 +1327,8 @@ networks:
       const stderr = error.stderr || '';
       throw new Error(
         `ErrorCode-004: Error ejecutando docker compose: ${message}\n` +
-          `--- STDOUT ---\n${stdout}\n` +
-          `--- STDERR ---\n${stderr}\n`,
+        `--- STDOUT ---\n${stdout}\n` +
+        `--- STDERR ---\n${stderr}\n`,
       );
     }
   }
@@ -1304,6 +1389,17 @@ networks:
     }
   }
 
+  /**
+ * Retrieves the logs of a specified Docker container after a 10-second delay.
+ *
+ * This method executes the `docker logs` command to obtain the logs from a running container
+ * identified by its name. If the command fails, it throws an error containing the container name
+ * and the corresponding error message. The delay simulates a wait time before the logs are retrieved.
+ *
+ * @param containerName - The name of the Docker container whose logs are to be fetched.
+ * @returns A promise that resolves to a string containing the logs of the specified container.
+ * @throws An error if the `docker logs` command fails or if the promise execution encounters an issue.
+ */
   async getDockerLog(containerName: string) {
     try {
       return await new Promise((resolve, reject) => {
@@ -1329,6 +1425,18 @@ networks:
     }
   }
 
+  /**
+ * Forcefully deletes a Docker container by name.
+ *
+ * This method executes the `docker rm -f` command to remove the specified Docker container,
+ * even if it is currently running. The operation is wrapped in a promise and resolves with a
+ * success message. If the command fails, an error is thrown containing the container name and the
+ * corresponding error message.
+ *
+ * @param containerName - The name of the Docker container to delete.
+ * @returns A promise that resolves to a confirmation message indicating the container was deleted.
+ * @throws An error if the container removal command fails.
+ */
   async deleteContainer(containerName: string) {
     try {
       return await new Promise((resolve) => {
@@ -1343,6 +1451,27 @@ networks:
     }
   }
 
+  /**
+ * Deletes a database and its associated user from a specified database engine.
+ *
+ * Based on the `db_type` parameter, this method constructs and executes a Docker command to
+ * connect to the appropriate container and run database-specific commands to:
+ * - Drop the database if it exists.
+ * - Drop the associated user if it exists.
+ * - Flush privileges or cleanup as necessary.
+ *
+ * Supported database types:
+ * - `'N'` for MongoDB
+ * - `'P'` for PostgreSQL
+ * - `'M'` for MariaDB
+ * - Any other value defaults to MySQL
+ *
+ * @param db_type - The type of database: 'N' (MongoDB), 'P' (PostgreSQL), 'M' (MariaDB), or default (MySQL).
+ * @param db_name - The name of the database to delete.
+ * @param db_user - The username associated with the database to delete.
+ * @returns A promise that resolves if the database and user were deleted successfully.
+ * @throws An error if the Docker command execution fails or the database/user cannot be deleted.
+ */
   async deleteDataBase(db_type, db_name, db_user) {
     let command = `
     docker exec ${process.env.MYSQL_CONTAINER_NAME} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "

@@ -28,6 +28,22 @@ export class NginxConfigGenerator {
     this.includeFile = join(this.includesDir, `${archieveName}`);
   }
 
+  /**
+ * Generates and applies an NGINX configuration file with proxy rules.
+ *
+ * This method:
+ * - Ensures the includes directory exists.
+ * - Removes the existing include file if it exists.
+ * - Iterates over a list of aliases to build `location` blocks with proxy settings.
+ * - Writes the constructed configuration to the include file.
+ * - Validates and reloads the NGINX service to apply the changes.
+ *
+ * It uses `nginx -t` to validate the configuration and `systemctl reload nginx`
+ * to reload the service. If any error occurs during validation or reload,
+ * it logs the error and terminates the process.
+ *
+ * @throws Will terminate the process if NGINX fails to reload or configuration is invalid.
+ */
   async generate() {
     // Asegura que exista el directorio de includes
     if (!existsSync(this.includesDir)) {
@@ -73,6 +89,24 @@ location ${loc} {
     }
   }
 
+  /**
+ * Generates NGINX configuration files for subdomains and reloads the server.
+ *
+ * This method:
+ * - Ensures the directory for subdomain configurations exists.
+ * - Iterates through `this.aliases`, which contain subdomain identifiers and target addresses.
+ * - For each alias, it creates an individual NGINX server block that:
+ *    - Listens on port 443 (HTTPS).
+ *    - Uses Let's Encrypt SSL certificates.
+ *    - Proxies requests to the specified target server.
+ * - Writes the configuration file to the appropriate directory.
+ * - Validates the full NGINX configuration using `nginx -t`.
+ * - Reloads NGINX to apply the changes using `systemctl reload nginx`.
+ *
+ * If validation or reload fails, the process will log the error and exit immediately.
+ *
+ * @throws Terminates the process if NGINX validation or reload fails.
+ */
   async generateSubDomain() {
 
     // Asegura que exista el directorio de includes
