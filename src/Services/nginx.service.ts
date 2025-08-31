@@ -21,7 +21,7 @@ export class NginxConfigGenerator {
   private appsDir: string;
 
   constructor(archieveName: string, aliases: NginxAlias[]) {
-    this.domain = 'proyectos.fireploy.online';
+    this.domain = `${process.env.HOST}` || 'proyectos.fireploy.online';
     this.aliases = aliases;
     this.includesDir = '/etc/nginx/includes';
     this.appsDir = '/etc/nginx/apps';
@@ -127,11 +127,6 @@ location ${loc} {
 server {
     listen 443 ssl;
     server_name ${alias.path}.${this.domain};
-
-    ssl_certificate /etc/letsencrypt/live/proyectos.fireploy.online-0001/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/proyectos.fireploy.online-0001/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     location / {
         proxy_pass http://${alias.target};
